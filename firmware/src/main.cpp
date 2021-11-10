@@ -164,6 +164,8 @@ void normalModeInit() {
   ledYellow(true);
   ledGreen(false);
   ledRed(false);
+  Serial.begin(9600);
+  Serial.println("Normal mode init");
 }
 
 void testModeConfigureIO(uint16_t config) {
@@ -237,6 +239,7 @@ void normalModeLoop() {
   if (millis() - lastHeartbeat > 1000) {
     rPiLink.buffer.leftMotor = 0;
     rPiLink.buffer.rightMotor = 0;
+    Serial.println("Lost heartbeat");
   }
 
   if (rPiLink.buffer.heartbeat) {
@@ -252,6 +255,18 @@ void normalModeLoop() {
   uint16_t ioConfig = rPiLink.buffer.ioConfig;
   if ((ioConfig >> 15) & 0x1) {
     configureIO(ioConfig);
+
+    // Place the arm servos in a default position
+    Serial.println("Setting servos");
+    if (ioChannelModes[2] == kModePwm) {
+      pwms[2].write(0);
+    }
+    if (ioChannelModes[3] == kModePwm) {
+      pwms[3].write(0);
+    }
+    if (ioChannelModes[4] == kModePwm) {
+      pwms[4].write(0);
+    }
   }
 
   // Update the built-ins
@@ -294,7 +309,7 @@ void normalModeLoop() {
           }
           else {
             // Attempt to zero out servo-motors in a low voltage mode
-            pwms[i].write(90);
+            pwms[i].write(70);
           }
         }
       } break;
