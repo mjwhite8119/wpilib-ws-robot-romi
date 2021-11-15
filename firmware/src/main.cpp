@@ -26,6 +26,11 @@ static constexpr int kMaxBuiltInDIO = 8;
 
 // Set up the servos
 Servo pwms[5];
+const int GRIPPER = 2;
+const int TILT = 3;
+const int LIFT = 4;
+int lastServoAngle[5] = {0,0,100,100,100};
+bool armMode = false;
 
 Romi32U4Motors motors;
 Romi32U4Encoders encoders;
@@ -51,9 +56,56 @@ bool isTestMode = false;
 bool isConfigured = false;
 
 unsigned long lastHeartbeat = 0;
+unsigned long lastTimeInterval = 0;
+unsigned long TIME_INTERVAL = 1000;
+bool haveHeartbeat = false;
 
 bool testModeLedFlag = false;
 unsigned long lastSwitchTime = 0;
+
+void incrementWrites(int armPart, int newServoAngle) {
+  Serial.println("Incrementing writes");
+  int inc = (lastServoAngle[armPart] - newServoAngle);
+  Serial.print("Starting at: ");Serial.print(lastServoAngle[armPart]);Serial.print(" increments ");Serial.print(inc);
+  for (int i=0; i < abs(inc); i++) {
+    if (inc < 0) {
+      pwms[i].write(lastServoAngle[armPart] + 1);
+      lastServoAngle[armPart] = lastServoAngle[armPart] + 1;
+    } else {
+      pwms[i].write(lastServoAngle[armPart] - 1);
+      lastServoAngle[armPart] = lastServoAngle[armPart] - 1;     
+    }   
+    delay(200);
+    Serial.print(" Writing to ");Serial.print(armPart);Serial.print(" = ");Serial.println(lastServoAngle[armPart]);
+  }
+  Serial.println("...Done");
+}
+
+void doWritesForArm(int armPart) {
+  int servoAngle = map(rPiLink.buffer.extIoValues[armPart], -400, 400, 0, 180);  
+            
+  // Restrict the servo angle for the Romi Arm
+  if (servoAngle < 105) {
+    if (armPart == LIFT) {
+      servoAngle = 129; // Don't let tilt go below this level
+    } else {
+      servoAngle = 105; // Don't let LIFT go below this level
+    } 
+  }          
+
+  if (lastServoAngle[armPart] != servoAngle) {
+      Serial.print(" Writing to " + armPart);Serial.print(" = ");Serial.println(servoAngle);
+  }
+
+  // Avoid sudden large swings of the servo range
+  if (abs(servoAngle - lastServoAngle[armPart]) > 10) {
+    incrementWrites(armPart, servoAngle);
+  } else {
+    pwms[armPart].write(servoAngle); 
+  }
+  
+  lastServoAngle[armPart] = servoAngle;  
+}
 
 void configureBuiltins(uint8_t config) {
   // structure
@@ -239,12 +291,12 @@ void normalModeLoop() {
   if (millis() - lastHeartbeat > 1000) {
     rPiLink.buffer.leftMotor = 0;
     rPiLink.buffer.rightMotor = 0;
-    Serial.println("Lost heartbeat");
   }
 
   if (rPiLink.buffer.heartbeat) {
     lastHeartbeat = millis();
     rPiLink.buffer.heartbeat = false;
+    // haveHeartbeat = true;
   }
 
   uint8_t builtinConfig = rPiLink.buffer.builtinConfig;
@@ -258,19 +310,22 @@ void normalModeLoop() {
 
     // Place the arm servos in a default position
     Serial.println("Setting servos");
-    if (ioChannelModes[2] == kModePwm) {
-      pwms[2].write(0);
-    }
     if (ioChannelModes[3] == kModePwm) {
-      pwms[3].write(0);
+      pwms[3].write(129); // Tilt
+      Serial.println("Tilting");
     }
     if (ioChannelModes[4] == kModePwm) {
-      pwms[4].write(0);
+      pwms[4].write(105); // Lift
     }
   }
 
   // Update the built-ins
   rPiLink.buffer.builtinDioValues[0] = buttonA.isPressed();
+  // Check if button A is pressed
+  if (rPiLink.buffer.builtinDioValues[0]) {
+    Serial.println("ButtonA is pressed...Now using Romi Arm");
+    armMode = true;
+  }
   ledYellow(rPiLink.buffer.builtinDioValues[3]);
 
   if (builtinDio1Config == kModeDigitalIn) {
@@ -305,11 +360,15 @@ void normalModeLoop() {
         // Only allow writes to PWM if we're not currently locked out due to low voltage
         if (pwms[i].attached()) {
           if (!lvHelper.isLowVoltage()) {
-            pwms[i].write(map(rPiLink.buffer.extIoValues[i], -400, 400, 0, 180));
+            if (armMode) {
+              doWritesForArm(i);
+            } else {
+              pwms[i].write(map(rPiLink.buffer.extIoValues[i], -400, 400, 0, 180));
+            }
           }
           else {
             // Attempt to zero out servo-motors in a low voltage mode
-            pwms[i].write(70);
+            pwms[i].write(120);
           }
         }
       } break;
