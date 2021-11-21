@@ -60,7 +60,7 @@ const int GRIPPER = 2;
 const int TILT = 3;
 const int LIFT = 4;
 const int minTiltAngle = 129;
-const int minLiftAngle = 105;
+const int minLiftAngle = 94;
 int lastServoAngle[5] = {0,0,100,minTiltAngle,minLiftAngle};
 bool armMode = false;
 unsigned long lastTimeInterval = 0;
@@ -69,7 +69,7 @@ unsigned long TIME_INTERVAL = 1000;
 void incrementWrites(const int armPart, const int newServoAngle) {
 
   // For small angles write immediately
-  if (abs(newServoAngle - lastServoAngle[armPart]) < 5) {
+  if (abs(newServoAngle - lastServoAngle[armPart]) < 5 || armPart == GRIPPER) {
     pwms[armPart].write(newServoAngle); 
   }
   else 
@@ -119,7 +119,7 @@ void doWritesForArm(const int armPart) {
 
   // Write to servo
   incrementWrites(armPart, servoAngle);
-
+  
   lastServoAngle[armPart] = servoAngle;  
 }
 
@@ -360,7 +360,7 @@ void normalModeLoop() {
     switch (ioChannelModes[i]) {
       case kModeDigitalOut: {
         digitalWrite(ioDioPins[i], rPiLink.buffer.extIoValues[i] ? HIGH : LOW);
-        Serial.print("extIO ");Serial.print(i);Serial.println(" is DigitalOut");
+        // Serial.print("extIO ");Serial.print(i);Serial.println(" is DigitalOut");
       } break;
       case kModeDigitalIn: {
         int dIn =  digitalRead(ioDioPins[i]);
