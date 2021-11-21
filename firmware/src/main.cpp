@@ -26,11 +26,6 @@ static constexpr int kMaxBuiltInDIO = 8;
 
 // Set up the servos
 Servo pwms[5];
-const int GRIPPER = 2;
-const int TILT = 3;
-const int LIFT = 4;
-int lastServoAngle[5] = {0,0,100,100,100};
-bool armMode = false;
 
 Romi32U4Motors motors;
 Romi32U4Encoders encoders;
@@ -56,55 +51,84 @@ bool isTestMode = false;
 bool isConfigured = false;
 
 unsigned long lastHeartbeat = 0;
-unsigned long lastTimeInterval = 0;
-unsigned long TIME_INTERVAL = 1000;
-bool haveHeartbeat = false;
 
 bool testModeLedFlag = false;
 unsigned long lastSwitchTime = 0;
 
-void incrementWrites(int armPart, int newServoAngle) {
-  Serial.println("Incrementing writes");
-  int inc = (lastServoAngle[armPart] - newServoAngle);
-  Serial.print("Starting at: ");Serial.print(lastServoAngle[armPart]);Serial.print(" increments ");Serial.print(inc);
-  for (int i=0; i < abs(inc); i++) {
-    if (inc < 0) {
-      pwms[i].write(lastServoAngle[armPart] + 1);
-      lastServoAngle[armPart] = lastServoAngle[armPart] + 1;
-    } else {
-      pwms[i].write(lastServoAngle[armPart] - 1);
-      lastServoAngle[armPart] = lastServoAngle[armPart] - 1;     
-    }   
-    delay(200);
-    Serial.print(" Writing to ");Serial.print(armPart);Serial.print(" = ");Serial.println(lastServoAngle[armPart]);
+// Variables for Romi Arm
+const int GRIPPER = 2;
+const int TILT = 3;
+const int LIFT = 4;
+const int minTiltAngle = 129;
+const int minLiftAngle = 105;
+int lastServoAngle[5] = {0,0,100,minTiltAngle,minLiftAngle};
+bool armMode = false;
+unsigned long lastTimeInterval = 0;
+unsigned long TIME_INTERVAL = 1000;
+
+void incrementWrites(const int armPart, const int newServoAngle) {
+
+  // For small angles write immediately
+  if (abs(newServoAngle - lastServoAngle[armPart]) < 5) {
+    pwms[armPart].write(newServoAngle); 
   }
-  Serial.println("...Done");
+  else 
+  {
+    Serial.println("Incrementing writes");
+    int inc = (lastServoAngle[armPart] - newServoAngle);
+    Serial.print("Starting at: ");Serial.print(lastServoAngle[armPart]);Serial.print(" increments ");Serial.print(inc);
+    
+    for (int i=0; i < abs(inc); i++) {
+      if (inc < 0) {
+        pwms[i].write(lastServoAngle[armPart] + 1);
+        lastServoAngle[armPart] = lastServoAngle[armPart] + 1;
+      } else {
+        pwms[i].write(lastServoAngle[armPart] - 1);
+        lastServoAngle[armPart] = lastServoAngle[armPart] - 1;     
+      }   
+      delay(200);
+      Serial.print(" Writing to ");Serial.print(armPart);Serial.print(" = ");Serial.println(lastServoAngle[armPart]);
+    }
+    Serial.println("...Done");
+  } 
 }
 
-void doWritesForArm(int armPart) {
+void doWritesForArm(const int armPart) {
+
+  // Pull the requested angle from the buffer
   int servoAngle = map(rPiLink.buffer.extIoValues[armPart], -400, 400, 0, 180);  
+
+  // If the requested angle is 90 then we went into disabled mode so
+  // keep the last servo angle.
+  if (servoAngle == 90) {
+    servoAngle = lastServoAngle[armPart];
+  }
             
-  // Restrict the servo angle for the Romi Arm
-  if (servoAngle < 105) {
-    if (armPart == LIFT) {
-      servoAngle = 129; // Don't let tilt go below this level
-    } else {
-      servoAngle = 105; // Don't let LIFT go below this level
-    } 
+  // Restrict the servo angle to a minimum range
+  if (armPart == TILT && servoAngle < minTiltAngle) {
+    servoAngle = minTiltAngle; // Don't let TILT go below this level
+  } 
+  if (armPart == LIFT && servoAngle < minLiftAngle) {
+    servoAngle = minLiftAngle; // Don't let LIFT go below this level
   }          
 
+  // Debug print to serial console
   if (lastServoAngle[armPart] != servoAngle) {
       Serial.print(" Writing to " + armPart);Serial.print(" = ");Serial.println(servoAngle);
   }
 
-  // Avoid sudden large swings of the servo range
-  if (abs(servoAngle - lastServoAngle[armPart]) > 10) {
-    incrementWrites(armPart, servoAngle);
-  } else {
-    pwms[armPart].write(servoAngle); 
-  }
-  
+  // Write to servo
+  incrementWrites(armPart, servoAngle);
+
   lastServoAngle[armPart] = servoAngle;  
+}
+
+void initializeArm() {
+  // Place the arm servos in a default position
+  Serial.println("Initializing Arm");  
+  armMode = true;
+  incrementWrites(TILT, minTiltAngle);
+  incrementWrites(LIFT, minLiftAngle);
 }
 
 void configureBuiltins(uint8_t config) {
@@ -296,7 +320,6 @@ void normalModeLoop() {
   if (rPiLink.buffer.heartbeat) {
     lastHeartbeat = millis();
     rPiLink.buffer.heartbeat = false;
-    // haveHeartbeat = true;
   }
 
   uint8_t builtinConfig = rPiLink.buffer.builtinConfig;
@@ -307,16 +330,6 @@ void normalModeLoop() {
   uint16_t ioConfig = rPiLink.buffer.ioConfig;
   if ((ioConfig >> 15) & 0x1) {
     configureIO(ioConfig);
-
-    // Place the arm servos in a default position
-    Serial.println("Setting servos");
-    if (ioChannelModes[3] == kModePwm) {
-      pwms[3].write(129); // Tilt
-      Serial.println("Tilting");
-    }
-    if (ioChannelModes[4] == kModePwm) {
-      pwms[4].write(105); // Lift
-    }
   }
 
   // Update the built-ins
@@ -324,7 +337,7 @@ void normalModeLoop() {
   // Check if button A is pressed
   if (rPiLink.buffer.builtinDioValues[0]) {
     Serial.println("ButtonA is pressed...Now using Romi Arm");
-    armMode = true;
+    initializeArm();
   }
   ledYellow(rPiLink.buffer.builtinDioValues[3]);
 
@@ -347,9 +360,15 @@ void normalModeLoop() {
     switch (ioChannelModes[i]) {
       case kModeDigitalOut: {
         digitalWrite(ioDioPins[i], rPiLink.buffer.extIoValues[i] ? HIGH : LOW);
+        Serial.print("extIO ");Serial.print(i);Serial.println(" is DigitalOut");
       } break;
       case kModeDigitalIn: {
+        int dIn =  digitalRead(ioDioPins[i]);
         rPiLink.buffer.extIoValues[i] = digitalRead(ioDioPins[i]);
+        if (lastServoAngle[i] != dIn) {
+          Serial.print("extIO ");Serial.print(i);Serial.print(" is DigitalIn ");Serial.println(dIn);
+        }      
+        lastServoAngle[i] = dIn;
       } break;
       case kModeAnalogIn: {
         if (ioAinPins[i] != 0) {
@@ -360,6 +379,7 @@ void normalModeLoop() {
         // Only allow writes to PWM if we're not currently locked out due to low voltage
         if (pwms[i].attached()) {
           if (!lvHelper.isLowVoltage()) {
+            // Restrict servo movements for the Romi Arm
             if (armMode) {
               doWritesForArm(i);
             } else {
