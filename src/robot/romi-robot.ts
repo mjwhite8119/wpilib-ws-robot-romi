@@ -496,6 +496,9 @@ export default class WPILibWSRomiRobot extends WPILibWSRobotBase {
             // Positive values here correspond to forward motion
             const romiValue = Math.floor(((value / 255) * 800) - 400);
 
+            // Convert back to -1 to 1
+            const wpiValue = ((value * 2) / 255) - 1;
+
             // We need to do some trickery to get a twos-complement number
             // Essentially we'll write a 16 bit signed int to the buffer
             // and read it out as an unsigned int
@@ -503,6 +506,7 @@ export default class WPILibWSRomiRobot extends WPILibWSRobotBase {
             // writeBlock() doesn't work...
             const tmp = Buffer.alloc(2);
             tmp.writeInt16BE(romiValue);
+            logger.info(`channel: ${channel} value: ${value} wpiValue: ${wpiValue}`);
 
             let offset;
             if (devicePortMapping.port === 0) {

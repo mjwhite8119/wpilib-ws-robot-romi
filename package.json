@@ -36,7 +36,8 @@
     "jsonfile": "^6.0.1",
     "node-ntcore": "^0.1.5",
     "promise-queue": "^2.2.5",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "yarn": "^1.22.19"
   },
   "optionalDependencies": {
     "i2c-bus": "^5.2.0"
