@@ -18,15 +18,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wpilibsuite/wpilib-ws-robot-romi.git"
+    "url": "git+https://github.com/mjwhite8119/wpilib-ws-robot-romi.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/wpilibsuite/wpilib-ws-robot-romi/issues"
+    "url": "https://github.com/mjwhite8119/wpilib-ws-robot-romi/issues"
   },
-  "homepage": "https://github.com/wpilibsuite/wpilib-ws-robot-romi#readme",
+  "homepage": "https://github.com/mjwhite8119/wpilib-ws-robot-romi#readme",
   "dependencies": {
     "@wpilib/wpilib-ws-robot": "1.2.1",
     "commander": "^6.1.0",
