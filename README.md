@@ -1,6 +1,34 @@
 # wpilib-ws-robot-romi
 
-Pololu Romi 32U4 Reference Robot for WPILib WebSocket Interface
+Pololu Romi 32U4 Reference Robot for WPILib WebSocket Interface.  This has been modified to run custom projects.  Here's a list of modifications:
+
+- Added second _i2cHandle to communication with second Arduino.
+
+## **Install on Raspberry Pi**
+
+Install tsc:
+
+    npm install tsc
+
+Rebuild the application by running:
+
+    cd wpilib-ws-robot-romi
+    npm run-script build-js
+
+This creates a new package in `dist`.    
+
+Packages need to be redeployed in `/home/pi/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi/dist` so move the package:   
+
+    mv dist ~/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi
+
+Restart the server:
+    ps -ef|grep node
+    sudo kill -2 PID
+
+The `package-lock.json` file may have changed so you can discard the changes from git:
+
+    git reset --hard
+
 
 ## **Introduction**
 This repository contains a reference implementation of a robot that can be controlled via the WPILib HALSim WebSocket extensions. The chassis and controller are based around the [Romi robot](https://www.pololu.com/category/202/romi-chassis-and-accessories) and associated [Control Board](https://www.pololu.com/product/3544) from Pololu.
