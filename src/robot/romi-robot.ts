@@ -138,7 +138,7 @@ export default class WPILibWSRomiRobot extends WPILibWSRobotBase {
         // By default, we'll use a queued I2C bus
         this._queuedBus = bus;
         this._i2cHandle = this._queuedBus.getNewAddressedHandle(address, true);
-        this._i2cHandle2 = this._queuedBus.getNewAddressedHandle(0x15, true);
+        // this._i2cHandle2 = this._queuedBus.getNewAddressedHandle(0x15, true);
 
         // Set up the LSM6DS33 (and associated Romi IMU devices-s)
         this._lsm6 = new LSM6(this._queuedBus.rawBus, 0x6B);
@@ -523,11 +523,11 @@ export default class WPILibWSRomiRobot extends WPILibWSRobotBase {
                 this._i2cErrorDetector.addErrorInstance();
             });
 
-            // Added to write to the second arduino
-            this._i2cHandle2.writeWord(offset, tmp.readUInt16BE())
-            .catch(err => {
-                this._i2cErrorDetector.addErrorInstance();
-            });
+            // // Added to write to the second arduino
+            // this._i2cHandle2.writeWord(offset, tmp.readUInt16BE())
+            // .catch(err => {
+            //     this._i2cErrorDetector.addErrorInstance();
+            // });
         }
         else if (devicePortMapping.device === "romi-external") {
             // Same conversion logic as above
