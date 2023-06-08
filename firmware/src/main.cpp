@@ -40,7 +40,8 @@ int button_state = LOW;
 */ 
 void startMotors(int pinkSpeed, int ringSpeed, int middleSpeed, int indexSpeed) {
   // FORWARD
-  // Serial.println(speed);
+  Serial.println(pinkSpeed);
+  Serial.println(ringSpeed);
   digitalWrite(PINK_PHASE_IN1,LOW); 
   analogWrite(PINK_ENABLE_IN2,pinkSpeed);
   digitalWrite(RING_PHASE_IN3,LOW); 
