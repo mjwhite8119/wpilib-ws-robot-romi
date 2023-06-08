@@ -11,14 +11,16 @@
 PololuRPiSlave<Data, 20> rPiLink;
 
 // Nano PWM pins 3,5,6,9,10 and 11. 
-#define PINK_PHASE_IN1 2 // direction
-#define PINK_ENABLE_IN2 3 // PWM
-#define RING_PHASE_IN3 4 // direction
-#define RING_ENABLE_IN4 5 // PWM
-#define MIDDLE_PHASE_IN1 8 // direction
-#define MIDDLE_ENABLE_IN2 9 // PWM
-#define INDEX_PHASE_IN3 10 // direction
-#define INDEX_ENABLE_IN4 11 // PWM
+// The PINK finger does not use PWM because the Nano 
+// only has 6 PWM pins.
+#define PINK_IN1 7 
+#define PINK_IN2 8 
+#define RING_IN3 3 
+#define RING_IN4 5 
+#define MIDDLE_IN1 6 
+#define MIDDLE_IN2 9 
+#define INDEX_IN3 10 
+#define INDEX_IN4 11 
 
 // Used for the DRV8835
 // #define MODE_PIN 8
@@ -31,6 +33,13 @@ PololuRPiSlave<Data, 20> rPiLink;
 int loop_count = 0;
 int button_state = LOW;
 
+double applyDeadband(double input, double threshold) {
+  if (input < -threshold || input > threshold) {
+    return input;
+  }
+  return 0.0;
+}
+
 // --------------------------------------------------
 /*                IN3/IN1           IN4/IN2
    Forward          HIGH              LOW
@@ -38,31 +47,60 @@ int button_state = LOW;
    Stop             LOW               LOW
    Stop             HIGH              HIGH 
 */ 
-void startMotors(int pinkSpeed, int ringSpeed, int middleSpeed, int indexSpeed) {
-  // FORWARD
+void startMotors(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
   Serial.println(pinkSpeed);
   Serial.println(ringSpeed);
-  digitalWrite(PINK_PHASE_IN1,LOW); 
-  analogWrite(PINK_ENABLE_IN2,pinkSpeed);
-  digitalWrite(RING_PHASE_IN3,LOW); 
-  analogWrite(RING_ENABLE_IN4,ringSpeed);
 
-  digitalWrite(MIDDLE_PHASE_IN1,LOW); 
-  analogWrite(MIDDLE_ENABLE_IN2,middleSpeed);
-  digitalWrite(INDEX_PHASE_IN3,LOW); 
-  analogWrite(INDEX_ENABLE_IN4,indexSpeed);
-}
+  // The PINK finger can only use HIGH and LOW
+  int speed = applyDeadband(pinkSpeed, 20);
 
-void stopMotors() {
-  // STOP
-  digitalWrite(INDEX_PHASE_IN3,LOW); 
-  analogWrite(INDEX_ENABLE_IN4,0);
-}
+  if (speed == 0) {
+    digitalWrite(PINK_IN1, LOW);
+    digitalWrite(PINK_IN2, LOW);
+  }
+  if( pinkSpeed > 255) {
+    pinkSpeed = pinkSpeed - 256;
+    digitalWrite(PINK_IN1, HIGH);
+    digitalWrite(PINK_IN2, LOW);
+  }
+  else {
+    pinkSpeed = 255 - pinkSpeed;
+    digitalWrite(PINK_IN2, HIGH);
+    digitalWrite(PINK_IN1, LOW);
+  }
+  
+  if( pinkSpeed > 255) {
+    pinkSpeed = pinkSpeed - 256;
+    analogWrite(RING_IN3, pinkSpeed);
+    digitalWrite(RING_IN4, LOW);
+  }
+  else {
+    pinkSpeed = 255 - pinkSpeed;
+    analogWrite(RING_IN4, pinkSpeed);
+    digitalWrite(RING_IN3, LOW);
+  }
 
-void reverseMotors(int speed) {
-  // REVERSE
-  digitalWrite(INDEX_PHASE_IN3,HIGH); 
-  analogWrite(INDEX_ENABLE_IN4,speed);
+if( pinkSpeed > 255) {
+    pinkSpeed = pinkSpeed - 256;
+    analogWrite(MIDDLE_IN1, pinkSpeed);
+    digitalWrite(MIDDLE_IN2, LOW);
+  }
+  else {
+    pinkSpeed = 255 - pinkSpeed;
+    analogWrite(MIDDLE_IN2, pinkSpeed);
+    digitalWrite(MIDDLE_IN1, LOW);
+  }
+  
+  if( pinkSpeed > 255) {
+    pinkSpeed = pinkSpeed - 256;
+    analogWrite(INDEX_IN3, pinkSpeed);
+    digitalWrite(INDEX_IN4, LOW);
+  }
+  else {
+    pinkSpeed = 255 - pinkSpeed;
+    analogWrite(INDEX_IN4, pinkSpeed);
+    digitalWrite(INDEX_IN3, LOW);
+  }
 }
 
 void readPot()
@@ -99,24 +137,24 @@ void setup()
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
   // Setup motor pins
-  pinMode(PINK_PHASE_IN1,OUTPUT);
-  pinMode(PINK_ENABLE_IN2,OUTPUT); 
-  pinMode(RING_PHASE_IN3,OUTPUT);
-  pinMode(RING_ENABLE_IN4,OUTPUT); 
-  pinMode(MIDDLE_PHASE_IN1,OUTPUT);
-  pinMode(MIDDLE_ENABLE_IN2,OUTPUT); 
-  pinMode(INDEX_PHASE_IN3,OUTPUT);
-  pinMode(INDEX_ENABLE_IN4,OUTPUT); 
+  pinMode(PINK_IN1,OUTPUT);
+  pinMode(PINK_IN2,OUTPUT); 
+  pinMode(RING_IN3,OUTPUT);
+  pinMode(RING_IN4,OUTPUT); 
+  pinMode(MIDDLE_IN1,OUTPUT);
+  pinMode(MIDDLE_IN2,OUTPUT); 
+  pinMode(INDEX_IN3,OUTPUT);
+  pinMode(INDEX_IN4,OUTPUT); 
 
   // For DRV8833 set all pins LOW
-  digitalWrite(PINK_PHASE_IN1, LOW);
-  digitalWrite(PINK_ENABLE_IN2, LOW);
-  digitalWrite(RING_PHASE_IN3, LOW);
-  digitalWrite(RING_ENABLE_IN4, LOW);
-  digitalWrite(MIDDLE_PHASE_IN1, LOW);
-  digitalWrite(MIDDLE_ENABLE_IN2, LOW);
-  digitalWrite(INDEX_PHASE_IN3, LOW);
-  digitalWrite(INDEX_ENABLE_IN4, LOW);
+  digitalWrite(PINK_IN1, LOW);
+  digitalWrite(PINK_IN2, LOW);
+  digitalWrite(RING_IN3, LOW);
+  digitalWrite(RING_IN4, LOW);
+  digitalWrite(MIDDLE_IN1, LOW);
+  digitalWrite(MIDDLE_IN2, LOW);
+  digitalWrite(INDEX_IN3, LOW);
+  digitalWrite(INDEX_IN4, LOW);
 
   // For Polulu DRV8835
   // pinMode(MODE_PIN,OUTPUT);
