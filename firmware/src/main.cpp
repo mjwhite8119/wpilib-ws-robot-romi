@@ -13,14 +13,14 @@ PololuRPiSlave<Data, 20> rPiLink;
 // Nano PWM pins 3,5,6,9,10 and 11. 
 // The PINK finger does not use PWM because the Nano 
 // only has 6 PWM pins.
-#define PINK_IN1 7 
-#define PINK_IN2 8 
-#define RING_IN3 3 
-#define RING_IN4 5 
-#define MIDDLE_IN1 6 
-#define MIDDLE_IN2 9 
-#define INDEX_IN3 10 
-#define INDEX_IN4 11 
+#define PINK_IN1 8 
+#define PINK_IN2 7 
+#define RING_IN3 5 
+#define RING_IN4 3 
+#define MIDDLE_IN1 11 
+#define MIDDLE_IN2 10 
+#define INDEX_IN3 9 
+#define INDEX_IN4 6 
 
 // Used for the DRV8835
 // #define MODE_PIN 8
