@@ -29,9 +29,9 @@ Rebuild the application by running:
 
 This creates a new package in `dist`.    
 
-Packages need to be redeployed in `/home/pi/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi/dist` so move the package:   
+Packages need to be redeployed in `/home/pi/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi/dist` so copy the `dist` package:   
 
-    mv dist ~/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi
+    cp -r dist ~/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi
 
 Restart the server:
     ps -ef|grep node
