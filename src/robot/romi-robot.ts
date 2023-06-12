@@ -44,8 +44,10 @@ const ROMI_ONBOARD_DIO: OnboardDIOFunction[] = [
 
 // Hardcoded list of onboard PWM ports
 const ROMI_ONBOARD_PWM: OnboardPWMFunction[] = [
-    "motor", // 0 - Left Motor
-    "motor", // 1 - Right Motor
+    "motor", // 0 - Pink Motor
+    "motor", // 1 - Ring Motor
+    "motor", // 2 - Middle Motor
+    "motor", // 3 - Index Motor
 ]
 
 export interface DevicePortMappingInfo {
