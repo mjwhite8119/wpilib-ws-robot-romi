@@ -34,11 +34,14 @@ int loop_count = 0;
 int print_count = 0;
 int button_state = LOW;
 
-void logOutput(double speed) {
-  if (loop_count > 1000) {
-    Serial.print(print_count); Serial.print(" "); 
-    Serial.println(speed);
-    Serial.println(rPiLink.buffer.firmwareIdent);
+void logOutput(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
+  if (loop_count > 2000) {
+    Serial.print(print_count); Serial.print(" Firmware "); Serial.println(rPiLink.buffer.firmwareIdent);
+    Serial.print("  pink ");Serial.println(pinkSpeed);
+    Serial.print("  ring ");Serial.println(ringSpeed);
+    Serial.print("middle ");Serial.println(middleSpeed);
+    Serial.print(" index ");Serial.println(indexSpeed);
+    // Serial.println(rPiLink.buffer.firmwareIdent);
     // Serial.println(rPiLink.buffer.status);
     loop_count = 0;
     print_count += 1;
@@ -64,7 +67,7 @@ void startMotors(double pinkSpeed, double ringSpeed, double middleSpeed, double 
 
   // The PINK finger can only use HIGH and LOW
   int speed = applyDeadband(pinkSpeed, 20);
-  logOutput(speed);
+  logOutput(speed, ringSpeed, middleSpeed, indexSpeed);
 
   if (speed == 0) {
     digitalWrite(PINK_IN1, LOW);
