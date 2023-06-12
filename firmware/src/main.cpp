@@ -33,6 +33,16 @@ PololuRPiSlave<Data, 20> rPiLink;
 int loop_count = 0;
 int button_state = LOW;
 
+void logOutput(double speed) {
+  if (loop_count > 1000) {
+    Serial.println(speed);
+    // Serial.println(rPiLink.buffer.firmwareIdent);
+    // Serial.println(rPiLink.buffer.status);
+    loop_count = 0;
+  }
+  loop_count += 1;
+}
+
 double applyDeadband(double input, double threshold) {
   if (input < -threshold || input > threshold) {
     return input;
@@ -48,11 +58,10 @@ double applyDeadband(double input, double threshold) {
    Stop             HIGH              HIGH 
 */ 
 void startMotors(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
-  Serial.println(pinkSpeed);
-  Serial.println(ringSpeed);
 
   // The PINK finger can only use HIGH and LOW
   int speed = applyDeadband(pinkSpeed, 20);
+  logOutput(speed);
 
   if (speed == 0) {
     digitalWrite(PINK_IN1, LOW);
@@ -129,6 +138,7 @@ void setup()
   // RPi wants the status to be 1 otherwise it will report a brownout.
   rPiLink.buffer.status = 1;
   rPiLink.buffer.pinkMotor = 0;
+  rPiLink.buffer.ringMotor = 0;
   
   // Setup pin 13 as output and turn LED off
   pinMode(LED_BUILTIN, OUTPUT);
@@ -168,6 +178,7 @@ void loop() {
 
   // Constantly write the firmware ident
   rPiLink.buffer.firmwareIdent = FIRMWARE_IDENT;
+  rPiLink.buffer.status = 1;
 
   // Update the built-ins.  These are 4 boolean values
   rPiLink.buffer.builtinDioValues[0] = digitalRead(BUTTON_PIN);
