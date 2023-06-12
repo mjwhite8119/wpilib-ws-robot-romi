@@ -514,8 +514,14 @@ export default class WPILibWSRomiRobot extends WPILibWSRobotBase {
             if (devicePortMapping.port === 0) {
                 offset = RomiDataBuffer.pinkMotor.offset;
             }
-            else {
+            else if (devicePortMapping.port === 1) {
                 offset = RomiDataBuffer.ringMotor.offset;
+            }
+            else if (devicePortMapping.port === 2) {
+                offset = RomiDataBuffer.middleMotor.offset;
+            }
+            else {
+                offset = RomiDataBuffer.indexMotor.offset;
             }
 
             this._i2cHandle.writeWord(offset, tmp.readUInt16BE())
