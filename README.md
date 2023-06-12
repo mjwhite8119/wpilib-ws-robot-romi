@@ -38,6 +38,11 @@ Packages need to be redeployed in `/home/pi/.nvm/versions/node/v14.15.0/lib/node
     cp -r dist ~/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi
 
 Restart the server from the WebUI under Romi (preferable).  Click *Down* then *Up*. Or you can restart it at the command line:
+Check the version:
+    
+    view ~/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi/dist/robot/romi-shmem-buffer.js
+
+Restart the server:
     ps -ef|grep node
     sudo kill -2 PID
 

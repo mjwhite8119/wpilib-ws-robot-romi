@@ -31,14 +31,17 @@ PololuRPiSlave<Data, 20> rPiLink;
 #define BUTTON_PIN 2
 
 int loop_count = 0;
+int print_count = 0;
 int button_state = LOW;
 
 void logOutput(double speed) {
   if (loop_count > 1000) {
+    Serial.print(print_count); Serial.print(" "); 
     Serial.println(speed);
-    // Serial.println(rPiLink.buffer.firmwareIdent);
+    Serial.println(rPiLink.buffer.firmwareIdent);
     // Serial.println(rPiLink.buffer.status);
     loop_count = 0;
+    print_count += 1;
   }
   loop_count += 1;
 }
