@@ -10,8 +10,8 @@
     { "name": "extIoValues", "type": "int16_t", "arraySize": 5 },
 
     { "name": "analog", "type": "uint16_t", "arraySize": 2 },
-    { "name": "leftMotor", "type": "int16_t" },
-    { "name": "rightMotor", "type": "int16_t" },
+    { "name": "pinkMotor", "type": "int16_t" },
+    { "name": "ringMotor", "type": "int16_t" },
 
     { "name": "batteryMillivolts", "type": "uint16_t" },
 
