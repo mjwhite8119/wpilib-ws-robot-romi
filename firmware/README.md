@@ -72,3 +72,7 @@ Additionally, you can use:
 pip run firmware
 </pre>
 This will generate the hex executable `firmware/.pio/build/a-start32u4/firmware.hex` that can then be uploaded to the Romi.
+
+Notes:
+
+- If you have trouble uploading `avrude error` then there may be another VSCode window with a terminal open.

@@ -22,6 +22,10 @@ Install tsc:
 
     npm install tsc
 
+or:
+
+    npm install typescript
+
 Rebuild the application by running:
 
     cd wpilib-ws-robot-romi
@@ -33,12 +37,14 @@ Packages need to be redeployed in `/home/pi/.nvm/versions/node/v14.15.0/lib/node
 
     cp -r dist ~/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi
 
-Restart the server:
+Restart the server from the WebUI under Romi (preferable).  Click *Down* then *Up*. Or you can restart it at the command line:
     ps -ef|grep node
     sudo kill -2 PID
 
-The `package-lock.json` file may have changed so you can discard the changes from git:
+Notes:
+- If only one of the Arduinos is being used then make sure that the second one is not connected to the I2C bus.
 
+- The `package-lock.json` file may have changed so you can discard the changes from git:
     git reset --hard
 
 ## Regenerating the Shared Memory File
@@ -46,6 +52,8 @@ The `package-lock.json` file may have changed so you can discard the changes fro
 The source file is sharedmem.json in the home directory.  Running the following command will regenerate the scripts `romi-shmem-buffer.js` and `firmware/shmem_buffer.h`.  The generation script is `generate-buffer.js`.
 
     npm run-script gen-shmem
+
+The FIRMWARE_IDENT will change.  The firmware and the nodejs server must show the same firmware identification number.  To confirm this, look at the *Firmware Compatible* on the WebUI Romi page.    
 
 ## **Introduction**
 This repository contains a reference implementation of a robot that can be controlled via the WPILib HALSim WebSocket extensions. The chassis and controller are based around the [Romi robot](https://www.pololu.com/category/202/romi-chassis-and-accessories) and associated [Control Board](https://www.pololu.com/product/3544) from Pololu.
