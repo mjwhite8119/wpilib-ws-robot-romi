@@ -7,40 +7,35 @@ The Bionic Hand Project uses the Pololu Romi 32U4 Reference Robot for WPILib Web
 ## Electrical Design
 - Two Arduino Nanos.
 
-<!-- Uses the [A-Star 32U4 Robot Controller with Raspberry Pi Bridge LV](https://www.pololu.com/docs/0J66). Here's the [Pinout](https://www.pololu.com/docs/0J66/3.9).   -->
-
 - [Micro Metal Gearmotors](https://www.pololu.com/category/60/micro-metal-gearmotors).  Most of these were bought from Amazon at a lower price.
 
-- [DRV8835 Dual Motor Driver Carrier](https://www.pololu.com/product/2135)
+- [DRV8833 Motor Drive Module 1.5A Dual H Bridge DC Gear Motor Driver Controller Board](https://www.amazon.com/dp/B07S4FVY9M?psc=1&ref=ppx_yo2ov_dt_b_product_details)
 
 - [Bourn's SENSOR ROTARY 330DEG PC PIN](https://www.digikey.com/en/products/detail/bourns-inc/3382H-1-103/2080233)
 
 
 ## **Install on Raspberry Pi**
 
-Install tsc:
+To install on the WPILib Raspberry Pi image you need to replace the nodejs distribution at `~/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi`.  To do this complete the following steps:
 
-    npm install tsc
+- Stop the nodejs application server from the **Romi WebUI** under *Romi*.  Click the *Down* button.
 
-or:
+- Rename the `wpilib-ws-robot-romi` folder to `wpilib-ws-robot-romi-orig`.
 
-    npm install typescript
+- Clone the **wpilib-ws-robot-romi** application.  This is a folk of the Romi application which is used to create custom projects by branching.  The branch for this project is *bionic-hand-server*. 
 
-Rebuild the application by running:
+    git clone https://github.com/mjwhite8119/wpilib-ws-robot-romi.git
+
+- In order to create new distribution directories you must install typescript into the directory:
 
     cd wpilib-ws-robot-romi
+    npm install typescript
+
+Build the application by running the following.  I will create the directory *dist* under the current directory.
+
     npm run-script build-js
 
-This creates a new package in `dist`.    
-
-Packages need to be redeployed in `/home/pi/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi/dist` so copy the `dist` package:   
-
-    cp -r dist ~/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi
-
-Restart the server from the WebUI under Romi (preferable).  Click *Down* then *Up*. Or you can restart it at the command line:
-Check the version:
-    
-    view ~/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi/dist/robot/romi-shmem-buffer.js
+Restart the server from the WebUI under Romi (preferable).  Click the *Up* button. Or you can restart it at the command line:
 
 Restart the server:
     ps -ef|grep node
@@ -58,9 +53,14 @@ The source file is sharedmem.json in the home directory.  Running the following 
 
     npm run-script gen-shmem
 
-The FIRMWARE_IDENT will change.  The firmware and the nodejs server must show the same firmware identification number.  To confirm this, look at the *Firmware Compatible* on the WebUI Romi page.    
+The FIRMWARE_IDENT will change.  The firmware and the nodejs server must show the same firmware identification number.  To confirm this, look at the *Firmware Compatible* on the WebUI Romi page.   
 
-## **Introduction**
+You can check the version:
+    
+    view ~/.nvm/versions/node/v14.15.0/lib/node_modules/@wpilib/wpilib-ws-robot-romi/dist/robot/romi-shmem-buffer.js
+
+
+## **Basic Introduction to the Node Application**
 This repository contains a reference implementation of a robot that can be controlled via the WPILib HALSim WebSocket extensions. The chassis and controller are based around the [Romi robot](https://www.pololu.com/category/202/romi-chassis-and-accessories) and associated [Control Board](https://www.pololu.com/product/3544) from Pololu.
 
 ## **Usage with WPILib**
