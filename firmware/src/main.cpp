@@ -13,7 +13,7 @@ PololuRPiSlave<Data, 20> rPiLink;
 // Nano PWM pins 3,5,6,9,10 and 11. 
 // The PINK finger does not use PWM because the Nano 
 // only has 6 PWM pins.
-#define PINK_IN1 8 
+#define PINK_IN1 8
 #define PINK_IN2 7 
 #define RING_IN3 5 
 #define RING_IN4 3 
@@ -66,54 +66,58 @@ double applyDeadband(double input, double threshold) {
 void startMotors(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
 
   // The PINK finger can only use HIGH and LOW
-  int speed = applyDeadband(pinkSpeed, 20);
-  logOutput(speed, ringSpeed, middleSpeed, indexSpeed);
+  int speed = 0;
+  logOutput(pinkSpeed, ringSpeed, middleSpeed, indexSpeed);
 
+  speed = applyDeadband(pinkSpeed, 20);
   if (speed == 0) {
     digitalWrite(PINK_IN1, LOW);
     digitalWrite(PINK_IN2, LOW);
   }
-  if( pinkSpeed > 255) {
-    pinkSpeed = pinkSpeed - 256;
+  if( speed > 255) {
+    speed = speed - 256;
     digitalWrite(PINK_IN1, HIGH);
     digitalWrite(PINK_IN2, LOW);
   }
   else {
-    pinkSpeed = 255 - pinkSpeed;
+    speed = 255 - speed;
     digitalWrite(PINK_IN2, HIGH);
     digitalWrite(PINK_IN1, LOW);
   }
   
-  if( pinkSpeed > 255) {
-    pinkSpeed = pinkSpeed - 256;
-    analogWrite(RING_IN3, pinkSpeed);
+  speed = applyDeadband(ringSpeed, 20);
+  if( speed > 255) {
+    speed = speed - 256;
+    analogWrite(RING_IN3, speed);
     digitalWrite(RING_IN4, LOW);
   }
   else {
-    pinkSpeed = 255 - pinkSpeed;
-    analogWrite(RING_IN4, pinkSpeed);
+    speed = 255 - speed;
+    analogWrite(RING_IN4, speed);
     digitalWrite(RING_IN3, LOW);
   }
 
-if( pinkSpeed > 255) {
-    pinkSpeed = pinkSpeed - 256;
-    analogWrite(MIDDLE_IN1, pinkSpeed);
+  speed = applyDeadband(middleSpeed, 20);
+  if( speed > 255) {
+    speed = speed - 256;
+    analogWrite(MIDDLE_IN1, speed);
     digitalWrite(MIDDLE_IN2, LOW);
   }
   else {
-    pinkSpeed = 255 - pinkSpeed;
-    analogWrite(MIDDLE_IN2, pinkSpeed);
+    speed = 255 - speed;
+    analogWrite(MIDDLE_IN2, speed);
     digitalWrite(MIDDLE_IN1, LOW);
   }
   
-  if( pinkSpeed > 255) {
-    pinkSpeed = pinkSpeed - 256;
-    analogWrite(INDEX_IN3, pinkSpeed);
+  speed = applyDeadband(indexSpeed, 20);
+  if( speed > 255) {
+    speed = speed - 256;
+    analogWrite(INDEX_IN3, speed);
     digitalWrite(INDEX_IN4, LOW);
   }
   else {
-    pinkSpeed = 255 - pinkSpeed;
-    analogWrite(INDEX_IN4, pinkSpeed);
+    speed = 255 - speed;
+    analogWrite(INDEX_IN4, speed);
     digitalWrite(INDEX_IN3, LOW);
   }
 }
