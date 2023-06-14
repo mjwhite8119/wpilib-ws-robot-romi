@@ -41,7 +41,12 @@ int ring_encoder_rotations = 0;
 int middle_encoder_rotations = 0;
 int index_encoder_rotations = 0;
 
+int pink_encoder_last_value = 0;
+int pink_encoder_direction = 0;
+
 #define BUTTON_PIN 2
+#define FORWARD 1
+#define REVERSE 0
 
 int loop_count = 0;
 int print_count = 0;
@@ -109,7 +114,7 @@ int pot_loop_count = 0;
 void logEncoderOutput(double pink, double ring, double middle, double index) {
   if (pot_loop_count > 2000) {
     Serial.print("Pink encoder "); Serial.println(pink);
-    Serial.print("Pink RAW encoder "); Serial.println(ring);
+    Serial.print("Pink rotations "); Serial.println(ring);
     // Serial.print("Middle encoder "); Serial.println(middle);
     // Serial.print("Index encoder "); Serial.println(index);
     pot_loop_count = 0;
@@ -122,17 +127,32 @@ void resetEncoders() {
   ring_encoder_rotations = 0;
   middle_encoder_rotations = 0;
   index_encoder_rotations = 0;
+
+  pink_encoder_last_value = 0;
+}
+
+int motorDirection(double motor) {
+  if (applyDeadband(motor, 20) >= 0) {
+    return FORWARD;
+  }
+  return REVERSE;
 }
 
 void readEncoders()
 {
-  int data = analogRead(PINK_ENCODER);
   pink_encoder = map(analogRead(PINK_ENCODER), 0, 1023, 0, 100);
+  if (pink_encoder < pink_encoder_last_value && motorDirection(rPiLink.buffer.pinkMotor) == FORWARD) {
+    pink_encoder_rotations += 1;
+  } else if (pink_encoder > pink_encoder_last_value && motorDirection(rPiLink.buffer.pinkMotor) == REVERSE) {
+    pink_encoder_rotations -= 1;
+  }
+  pink_encoder_last_value = pink_encoder;
+
   ring_encoder = map(analogRead(RING_ENCODER), 0, 1023, 0, 100);
   middle_encoder = map(analogRead(MIDDLE_ENCODER), 0, 1023, 0, 100);
   index_encoder = map(analogRead(INDEX_ENCODER), 0, 1023, 0, 100);
 
-  logEncoderOutput(pink_encoder, data, middle_encoder, index_encoder);
+  logEncoderOutput(pink_encoder, pink_encoder_rotations, middle_encoder, index_encoder);
 }
 
 void setupEncoders() {
