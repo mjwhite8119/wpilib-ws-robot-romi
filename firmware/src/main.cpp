@@ -27,7 +27,20 @@ PololuRPiSlave<Data, 20> rPiLink;
 
 // --- Define ENCODERS ---
 
-#define POTENTIOMETER_PIN A0
+#define PINK_ENCODER A0
+#define RING_ENCODER A1
+#define MIDDLE_ENCODER A2
+#define INDEX_ENCODER A3
+
+int pink_encoder = 0;
+int ring_encoder = 0;
+int middle_encoder = 0;
+int index_encoder = 0;
+int pink_encoder_rotations = 0;
+int ring_encoder_rotations = 0;
+int middle_encoder_rotations = 0;
+int index_encoder_rotations = 0;
+
 #define BUTTON_PIN 2
 
 int loop_count = 0;
@@ -36,11 +49,12 @@ int button_state = LOW;
 
 void logOutput(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
   if (loop_count > 2000) {
-    Serial.print(print_count); Serial.print(" Firmware "); Serial.println(rPiLink.buffer.firmwareIdent);
-    Serial.print("  pink ");Serial.println(pinkSpeed);
-    Serial.print("  ring ");Serial.println(ringSpeed);
-    Serial.print("middle ");Serial.println(middleSpeed);
-    Serial.print(" index ");Serial.println(indexSpeed);
+    // Serial.print(print_count); Serial.print(" Firmware "); Serial.println(rPiLink.buffer.firmwareIdent);
+    // Serial.print("  pink speed ");Serial.println(pinkSpeed);
+    // Serial.print("  pink DEADBAND speed ");Serial.println(ringSpeed);
+    // Serial.print("  ring ");Serial.println(ringSpeed);
+    // Serial.print("middle ");Serial.println(middleSpeed);
+    // Serial.print(" index ");Serial.println(indexSpeed);
     // Serial.println(rPiLink.buffer.firmwareIdent);
     // Serial.println(rPiLink.buffer.status);
     loop_count = 0;
@@ -63,73 +77,66 @@ double applyDeadband(double input, double threshold) {
    Stop             LOW               LOW
    Stop             HIGH              HIGH 
 */ 
+void applyPower(double speed, int in1, int in2){
+  int db_speed = applyDeadband(speed, 20);
+  if (db_speed == 0) {
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+  }
+  else if( db_speed > 0) {
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+  }
+  else {
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
+  }
+}
+
 void startMotors(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
 
   // The PINK finger can only use HIGH and LOW
   int speed = 0;
   logOutput(pinkSpeed, ringSpeed, middleSpeed, indexSpeed);
 
-  speed = applyDeadband(pinkSpeed, 20);
-  if (speed == 0) {
-    digitalWrite(PINK_IN1, LOW);
-    digitalWrite(PINK_IN2, LOW);
-  }
-  if( speed > 255) {
-    speed = speed - 256;
-    digitalWrite(PINK_IN1, HIGH);
-    digitalWrite(PINK_IN2, LOW);
-  }
-  else {
-    speed = 255 - speed;
-    digitalWrite(PINK_IN2, HIGH);
-    digitalWrite(PINK_IN1, LOW);
-  }
-  
-  speed = applyDeadband(ringSpeed, 20);
-  if( speed > 255) {
-    speed = speed - 256;
-    analogWrite(RING_IN3, speed);
-    digitalWrite(RING_IN4, LOW);
-  }
-  else {
-    speed = 255 - speed;
-    analogWrite(RING_IN4, speed);
-    digitalWrite(RING_IN3, LOW);
-  }
-
-  speed = applyDeadband(middleSpeed, 20);
-  if( speed > 255) {
-    speed = speed - 256;
-    analogWrite(MIDDLE_IN1, speed);
-    digitalWrite(MIDDLE_IN2, LOW);
-  }
-  else {
-    speed = 255 - speed;
-    analogWrite(MIDDLE_IN2, speed);
-    digitalWrite(MIDDLE_IN1, LOW);
-  }
-  
-  speed = applyDeadband(indexSpeed, 20);
-  if( speed > 255) {
-    speed = speed - 256;
-    analogWrite(INDEX_IN3, speed);
-    digitalWrite(INDEX_IN4, LOW);
-  }
-  else {
-    speed = 255 - speed;
-    analogWrite(INDEX_IN4, speed);
-    digitalWrite(INDEX_IN3, LOW);
-  }
+  applyPower(pinkSpeed, PINK_IN1, PINK_IN2);
+  applyPower(ringSpeed, RING_IN3, RING_IN4);
+  applyPower(middleSpeed, MIDDLE_IN1, MIDDLE_IN2);
+  applyPower(indexSpeed, INDEX_IN3, INDEX_IN4);
 }
 
-void readPot()
+int pot_loop_count = 0;
+void logEncoderOutput(double pink, double ring, double middle, double index) {
+  if (pot_loop_count > 2000) {
+    Serial.print("Pink encoder "); Serial.println(pink);
+    Serial.print("Pink RAW encoder "); Serial.println(ring);
+    // Serial.print("Middle encoder "); Serial.println(middle);
+    // Serial.print("Index encoder "); Serial.println(index);
+    pot_loop_count = 0;
+  }
+  pot_loop_count += 1;
+}
+
+void resetEncoders() {
+  pink_encoder_rotations = 0;
+  ring_encoder_rotations = 0;
+  middle_encoder_rotations = 0;
+  index_encoder_rotations = 0;
+}
+
+void readEncoders()
 {
-  int data = analogRead(POTENTIOMETER_PIN);
-  int percentage = map(data, 0, 1023, 0, 100);
-  Serial.print("Potentiometer at ");
-  Serial.print(percentage);
-  Serial.println("%");
-  delay(500);
+  int data = analogRead(PINK_ENCODER);
+  pink_encoder = map(analogRead(PINK_ENCODER), 0, 1023, 0, 100);
+  ring_encoder = map(analogRead(RING_ENCODER), 0, 1023, 0, 100);
+  middle_encoder = map(analogRead(MIDDLE_ENCODER), 0, 1023, 0, 100);
+  index_encoder = map(analogRead(INDEX_ENCODER), 0, 1023, 0, 100);
+
+  logEncoderOutput(pink_encoder, data, middle_encoder, index_encoder);
+}
+
+void setupEncoders() {
+  readEncoders();
 }
 
 // -------------------------------------------------- //
@@ -176,9 +183,15 @@ void setup()
   digitalWrite(INDEX_IN3, LOW);
   digitalWrite(INDEX_IN4, LOW);
 
-  // For Polulu DRV8835
-  // pinMode(MODE_PIN,OUTPUT);
-  // digitalWrite(MODE_PIN, HIGH);
+  // delay(100);
+  // digitalWrite(PINK_IN1, HIGH);
+  // digitalWrite(PINK_IN2, LOW);
+  // delay(1000);
+  // digitalWrite(PINK_IN1, LOW);
+  // digitalWrite(PINK_IN2, LOW);
+
+  // Setup Encoders
+  setupEncoders();
 }
 
 void loop() {
@@ -197,10 +210,13 @@ void loop() {
   // if (rPiLink.buffer.builtinDioValues[0] == HIGH) {
   //   Serial.println("ButtonA is pressed...");
   //   rPiLink.buffer.pinkMotor = 200;
-  //   rPiLink.buffer.ringMotor = 0;
+  //   digitalWrite(PINK_IN1, HIGH);
+  //   digitalWrite(PINK_IN2, LOW);
   // } 
   // else {
-  //   rPiLink.buffer.leftMotor = 0;
+  //   rPiLink.buffer.pinkMotor = 0;
+  //   digitalWrite(PINK_IN1, LOW);
+  //   digitalWrite(PINK_IN2, LOW);
   // }
 
   // digitalWrite(LED_BUILTIN, rPiLink.buffer.builtinDioValues[3]);
@@ -210,13 +226,12 @@ void loop() {
   //   digitalWrite(LED_BUILTIN, LOW);
   // }
   
-
   startMotors(rPiLink.buffer.pinkMotor,
               rPiLink.buffer.ringMotor,
               rPiLink.buffer.middleMotor,
               rPiLink.buffer.indexMotor); 
 
-  // readPot();
+  readEncoders();
 
   // Write to buffer
   rPiLink.finalizeWrites();
