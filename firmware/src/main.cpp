@@ -34,6 +34,7 @@ PololuRPiSlave<Data, 20> rPiLink;
 #define INDEX_ENCODER A3
 
 Encoder pinkEncoder = Encoder(PINK_ENCODER);
+Encoder ringEncoder = Encoder(RING_ENCODER);
 
 int pink_encoder = 0;
 int ring_encoder = 0;
@@ -280,20 +281,22 @@ void loop() {
               rPiLink.buffer.indexMotor); 
 
   // Encoders
-  // if (rPiLink.buffer.resetLeftEncoder) {
-  //   rPiLink.buffer.resetLeftEncoder = false;
-  //   resetEncoders();
-  // }
+  if (rPiLink.buffer.resetLeftEncoder) {
+    rPiLink.buffer.resetLeftEncoder = false;
+    pinkEncoder.resetEncoder();
+  }
 
-  // if (rPiLink.buffer.resetRightEncoder) {
-  //   rPiLink.buffer.resetRightEncoder = false;
-  //   resetEncoders();
-  // }
+  if (rPiLink.buffer.resetRightEncoder) {
+    rPiLink.buffer.resetRightEncoder = false;
+    ringEncoder.resetEncoder();
+  }
 
   // rPiLink.buffer.leftEncoder = encoders.getCountsLeft();
   // rPiLink.buffer.rightEncoder = encoders.getCountsRight();
 
-  readPinkEncoder();
+  // readPinkEncoder();
+  pinkEncoder.getPosition();
+  ringEncoder.getPosition();
 
   // Write to buffer
   rPiLink.finalizeWrites();

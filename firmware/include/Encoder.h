@@ -1,9 +1,6 @@
 #ifndef _ENCODER_H_
 #define _ENCODER_H_
 
-#define FORWARD 1
-#define REVERSE 0
-
 class Encoder
 {  
    public:
@@ -17,12 +14,22 @@ class Encoder
 
     int16_t getPosition() {
       position = map(analogRead(port_), 0, 1023, 0, 100);
-      if (position < last_position && motorDirection(rPiLink.buffer.pinkMotor) == FORWARD) {
+      // Only apply a rotation if the difference is greater than 50 percent
+      int16_t diff = applyDeadband(position - last_position, 50);
+      if (diff == 0) {
+        last_position = position;
+        return position;
+      }
+      
+      if (diff > 0) {
         rotations += 1;
-      } else if (position > last_position && motorDirection(rPiLink.buffer.pinkMotor) == REVERSE) {
+      } else {
         rotations -= 1;
       }
       last_position = position;
+
+      Serial.print("Pink rotations "); Serial.println(rotations);
+  
       return position;
     }
 
@@ -36,6 +43,13 @@ class Encoder
     int16_t position = 0;
     int16_t last_position = 0;
     int16_t rotations = 0;
+
+    int16_t applyDeadband(int16_t input, const int16_t threshold) {
+      if (input < -threshold || input > threshold) {
+        return input;
+      }
+      return 0;
+    }
 
 };
 
