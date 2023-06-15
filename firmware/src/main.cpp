@@ -45,6 +45,7 @@ int pink_encoder_last_value = 0;
 int ring_encoder_last_value = 0;
 
 #define BUTTON_PIN 2
+#define STOPPED 2
 #define FORWARD 1
 #define REVERSE 0
 
@@ -112,8 +113,9 @@ void startMotors(double pinkSpeed, double ringSpeed, double middleSpeed, double 
 
 int pot_loop_count = 0;
 void logEncoderOutput(double pink, double ring, double middle, double index) {
-  if (pot_loop_count > 2000) {
+  if (pot_loop_count > 100) {
     Serial.print("Pink encoder "); Serial.println(pink);
+    Serial.print("Last value "); Serial.println(middle);
     Serial.print("Pink rotations "); Serial.println(ring);
     // Serial.print("Middle encoder "); Serial.println(middle);
     // Serial.print("Index encoder "); Serial.println(index);
@@ -123,9 +125,9 @@ void logEncoderOutput(double pink, double ring, double middle, double index) {
 }
 
 int motorDirection(double motor) {
-  if (applyDeadband(motor, 20) >= 0) {
-    return FORWARD;
-  }
+  int dir = applyDeadband(motor, 20);
+  if (dir == 0) {return FORWARD;}
+  if (dir > 0) {return FORWARD;}
   return REVERSE;
 }
 
@@ -139,32 +141,47 @@ void resetEncoders() {
   ring_encoder_last_value = 0;
 }
 
-void readEncoders()
+int readPinkEncoder()
 {
   pink_encoder = map(analogRead(PINK_ENCODER), 0, 1023, 0, 100);
-  if (pink_encoder < pink_encoder_last_value && motorDirection(rPiLink.buffer.pinkMotor) == FORWARD) {
+  int diff = applyDeadband(pink_encoder - pink_encoder_last_value, 50);
+  if (diff == 0) {
+    pink_encoder_last_value = pink_encoder;
+    return pink_encoder;
+  }
+  
+  if (diff > 0) {
     pink_encoder_rotations += 1;
-  } else if (pink_encoder > pink_encoder_last_value && motorDirection(rPiLink.buffer.pinkMotor) == REVERSE) {
+  } else {
     pink_encoder_rotations -= 1;
   }
+
+  Serial.print("Pink rotations "); Serial.println(pink_encoder_rotations);
+  
+  // logEncoderOutput(pink_encoder, pink_encoder_rotations, pink_encoder_last_value, ring_encoder_rotations);
   pink_encoder_last_value = pink_encoder;
 
-  ring_encoder = map(analogRead(RING_ENCODER), 0, 1023, 0, 100);
-  if (ring_encoder < ring_encoder_last_value && motorDirection(rPiLink.buffer.ringMotor) == FORWARD) {
-    ring_encoder_rotations += 1;
-  } else if (ring_encoder > ring_encoder_last_value && motorDirection(rPiLink.buffer.ringMotor) == REVERSE) {
-    ring_encoder_rotations -= 1;
-  }
-  ring_encoder_last_value = ring_encoder;
+  return pink_encoder;
 
-  middle_encoder = map(analogRead(MIDDLE_ENCODER), 0, 1023, 0, 100);
-  index_encoder = map(analogRead(INDEX_ENCODER), 0, 1023, 0, 100);
+  // ring_encoder = map(analogRead(RING_ENCODER), 0, 1023, 0, 100);
+  // if (ring_encoder < ring_encoder_last_value && motorDirection(rPiLink.buffer.ringMotor) == FORWARD) {
+  //   ring_encoder_rotations += 1;
+  // } else if (ring_encoder > ring_encoder_last_value && motorDirection(rPiLink.buffer.ringMotor) == REVERSE) {
+  //   ring_encoder_rotations -= 1;
+  // }
+  // ring_encoder_last_value = ring_encoder;
 
-  logEncoderOutput(pink_encoder, pink_encoder_rotations, ring_encoder, ring_encoder_rotations);
+  // middle_encoder = map(analogRead(MIDDLE_ENCODER), 0, 1023, 0, 100);
+  // index_encoder = map(analogRead(INDEX_ENCODER), 0, 1023, 0, 100);
+
+  
 }
 
 void setupEncoders() {
-  readEncoders();
+  resetEncoders();
+  pink_encoder = map(analogRead(PINK_ENCODER), 0, 1023, 0, 100);
+  Serial.print("Start ---- "); Serial.println(pink_encoder);
+  // readEncoders();
 }
 
 // -------------------------------------------------- //
@@ -173,7 +190,7 @@ void setupEncoders() {
 void setup()
 {
   Serial.begin(9600);
-  Serial.print("Setting Up..."); 
+  Serial.println("Setting Up..."); 
 
   // Join I2C bus as slave with address 0x20 Arduino 1
   // or 0x21 for Arduino 2
@@ -260,20 +277,20 @@ void loop() {
               rPiLink.buffer.indexMotor); 
 
   // Encoders
-  if (rPiLink.buffer.resetLeftEncoder) {
-    rPiLink.buffer.resetLeftEncoder = false;
-    resetEncoders();
-  }
+  // if (rPiLink.buffer.resetLeftEncoder) {
+  //   rPiLink.buffer.resetLeftEncoder = false;
+  //   resetEncoders();
+  // }
 
-  if (rPiLink.buffer.resetRightEncoder) {
-    rPiLink.buffer.resetRightEncoder = false;
-    resetEncoders();
-  }
+  // if (rPiLink.buffer.resetRightEncoder) {
+  //   rPiLink.buffer.resetRightEncoder = false;
+  //   resetEncoders();
+  // }
 
   // rPiLink.buffer.leftEncoder = encoders.getCountsLeft();
   // rPiLink.buffer.rightEncoder = encoders.getCountsRight();
 
-  readEncoders();
+  readPinkEncoder();
 
   // Write to buffer
   rPiLink.finalizeWrites();
