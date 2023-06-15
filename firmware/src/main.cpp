@@ -3,6 +3,7 @@
 
 #include "shmem_buffer.h"
 #include "Encoder.h"
+#include "Motor.h"
 
 // Addresses for Arduinos
 #define ARDUINO_1_ADDRESS 20 // I2C Address of Arduino 1
@@ -23,8 +24,8 @@ PololuRPiSlave<Data, 20> rPiLink;
 #define INDEX_IN3 9 
 #define INDEX_IN4 6 
 
-// Used for the DRV8835
-// #define MODE_PIN 8
+Motor pinkMotor = Motor(PINK_IN1, PINK_IN2);
+Motor ringMotor = Motor(RING_IN3, RING_IN4);
 
 // --- Define ENCODERS ---
 
@@ -275,10 +276,13 @@ void loop() {
   //   digitalWrite(LED_BUILTIN, LOW);
   // }
   
-  startMotors(rPiLink.buffer.pinkMotor,
-              rPiLink.buffer.ringMotor,
-              rPiLink.buffer.middleMotor,
-              rPiLink.buffer.indexMotor); 
+  // startMotors(rPiLink.buffer.pinkMotor,
+  //             rPiLink.buffer.ringMotor,
+  //             rPiLink.buffer.middleMotor,
+  //             rPiLink.buffer.indexMotor); 
+
+  pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
+  ringMotor.applyPower(rPiLink.buffer.ringMotor);
 
   // Encoders
   if (rPiLink.buffer.resetLeftEncoder) {
