@@ -2,6 +2,7 @@
 #include <PololuRPiSlave.h>
 
 #include "shmem_buffer.h"
+#include "Encoder.h"
 
 // Addresses for Arduinos
 #define ARDUINO_1_ADDRESS 20 // I2C Address of Arduino 1
@@ -31,6 +32,8 @@ PololuRPiSlave<Data, 20> rPiLink;
 #define RING_ENCODER A1
 #define MIDDLE_ENCODER A2
 #define INDEX_ENCODER A3
+
+Encoder pinkEncoder = Encoder(PINK_ENCODER);
 
 int pink_encoder = 0;
 int ring_encoder = 0;
