@@ -34,7 +34,7 @@ class Encoder
       }
       last_position = position;
 
-      printInfo();
+      Serial.print("readEncoder ");printInfo();
   
       return position;
     }

@@ -21,6 +21,8 @@ PololuRPiSlave<Data, 20> rPiLink;
 
 Encoder pinkEncoder = Encoder(PINK_ENCODER);
 Encoder ringEncoder = Encoder(RING_ENCODER);
+Encoder middleEncoder = Encoder(MIDDLE_ENCODER);
+Encoder indexEncoder = Encoder(INDEX_ENCODER);
 
 // Nano PWM pins 3,5,6,9,10 and 11. 
 // The PINK finger does not use PWM because the Nano 
@@ -36,6 +38,8 @@ Encoder ringEncoder = Encoder(RING_ENCODER);
 
 Motor pinkMotor = Motor(PINK_IN1, PINK_IN2, pinkEncoder);
 Motor ringMotor = Motor(RING_IN3, RING_IN4, ringEncoder);
+Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, middleEncoder);
+Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, indexEncoder);
 
 // int pink_encoder = 0;
 // int ring_encoder = 0;
@@ -106,8 +110,7 @@ double applyDeadband(double input, double threshold) {
 
 void startMotors(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
 
-  pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
-  ringMotor.applyPower(rPiLink.buffer.ringMotor);
+  
   
 
   // int speed = 0;
@@ -275,10 +278,15 @@ void loop() {
   //   digitalWrite(LED_BUILTIN, LOW);
   // }
   
-  startMotors(rPiLink.buffer.pinkMotor,
-              rPiLink.buffer.ringMotor,
-              rPiLink.buffer.middleMotor,
-              rPiLink.buffer.indexMotor); 
+  // startMotors(rPiLink.buffer.pinkMotor,
+  //             rPiLink.buffer.ringMotor,
+  //             rPiLink.buffer.middleMotor,
+  //             rPiLink.buffer.indexMotor); 
+
+  pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
+  ringMotor.applyPower(rPiLink.buffer.ringMotor);
+  middleMotor.applyPower(rPiLink.buffer.middleMotor);
+  indexMotor.applyPower(rPiLink.buffer.indexMotor);
 
   // Encoders
   if (rPiLink.buffer.resetLeftEncoder) {

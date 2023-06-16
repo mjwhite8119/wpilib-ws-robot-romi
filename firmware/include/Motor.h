@@ -25,7 +25,7 @@ class Motor
       Stop             LOW               LOW
       Stop             HIGH              HIGH 
     */ 
-    void applyPower(double speed){
+    void applyPower(int16_t speed){
       DBSpeed = applyDeadband(speed, 20);
       if (DBSpeed == 0) {
         digitalWrite(in1Port_, LOW);
@@ -51,6 +51,26 @@ class Motor
           printPort(); printSpeed();
           Serial.print("Finger extended "); encoder_.printInfo();
         // }  
+      }
+    }
+
+    void applyPWMPower(int16_t speed) {
+      DBSpeed = applyDeadband(speed, 20);
+      if (DBSpeed == 0) {
+        digitalWrite(in1Port_, LOW);
+        digitalWrite(in2Port_, LOW);
+      } 
+      else if (DBSpeed > 0) {
+        analogWrite(in1Port_, DBSpeed);
+        digitalWrite(in2Port_, LOW);
+        // printPort(); printSpeed();
+        // Serial.print("Finger flexed ");encoder_.printInfo();
+      }
+      else {
+        digitalWrite(in1Port_, LOW);
+        analogWrite(in2Port_, DBSpeed);
+        // printPort(); printSpeed();
+        // Serial.print("Finger extended "); encoder_.printInfo();
       }
     }
 
