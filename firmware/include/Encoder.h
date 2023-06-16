@@ -12,7 +12,13 @@ class Encoder
       :port_(port)
     {}  
 
-    int16_t getPosition() {
+    void init() {
+      position = map(analogRead(port_), 0, 1023, 0, 100);
+      last_position = position;
+      printPort(); Serial.print("Initialized. "); printPosition(); printRotations();
+    }
+
+    int16_t readEncoder() {
       position = map(analogRead(port_), 0, 1023, 0, 100);
       // Only apply a rotation if the difference is greater than 50 percent
       int16_t diff = applyDeadband(position - last_position, 50);
@@ -28,14 +34,34 @@ class Encoder
       }
       last_position = position;
 
-      Serial.print("Pink rotations "); Serial.println(rotations);
+      printInfo();
   
       return position;
     }
 
-    int16_t getRotations() {return rotations;}
+    const int16_t getRotations() {return rotations;}
+    const int16_t getPosition() {return position;}
 
-    void resetEncoder() {rotations = 0;}
+    void resetEncoder() {
+      rotations = 0;
+      printPort(); Serial.print("Reset "); printRotations();
+    }
+
+    void const printPort() {
+      Serial.print("Port "); Serial.print(port_);Serial.print(": ");
+    }
+
+    void printPosition() {
+      Serial.print(" Position "); Serial.println(getPosition());
+    }
+
+    void printRotations() {
+      Serial.print(" Rotations "); Serial.println(getRotations());
+    }
+
+    void printInfo() {
+      printPort(); Serial.print(getRotations()); Serial.print("-"); Serial.println(getPosition());
+    }
 
   private:
 

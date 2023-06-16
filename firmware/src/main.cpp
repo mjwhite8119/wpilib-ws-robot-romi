@@ -12,21 +12,6 @@
 // Buffer and delay time
 PololuRPiSlave<Data, 20> rPiLink;
 
-// Nano PWM pins 3,5,6,9,10 and 11. 
-// The PINK finger does not use PWM because the Nano 
-// only has 6 PWM pins.
-#define PINK_IN1 8
-#define PINK_IN2 7 
-#define RING_IN3 5 
-#define RING_IN4 3 
-#define MIDDLE_IN1 11 
-#define MIDDLE_IN2 10 
-#define INDEX_IN3 9 
-#define INDEX_IN4 6 
-
-Motor pinkMotor = Motor(PINK_IN1, PINK_IN2);
-Motor ringMotor = Motor(RING_IN3, RING_IN4);
-
 // --- Define ENCODERS ---
 
 #define PINK_ENCODER A0
@@ -37,17 +22,32 @@ Motor ringMotor = Motor(RING_IN3, RING_IN4);
 Encoder pinkEncoder = Encoder(PINK_ENCODER);
 Encoder ringEncoder = Encoder(RING_ENCODER);
 
-int pink_encoder = 0;
-int ring_encoder = 0;
-int middle_encoder = 0;
-int index_encoder = 0;
-int pink_encoder_rotations = 0;
-int ring_encoder_rotations = 0;
-int middle_encoder_rotations = 0;
-int index_encoder_rotations = 0;
+// Nano PWM pins 3,5,6,9,10 and 11. 
+// The PINK finger does not use PWM because the Nano 
+// only has 6 PWM pins.
+#define PINK_IN1 8
+#define PINK_IN2 7 
+#define RING_IN3 3 
+#define RING_IN4 5 
+#define MIDDLE_IN1 11 
+#define MIDDLE_IN2 10 
+#define INDEX_IN3 9 
+#define INDEX_IN4 6 
 
-int pink_encoder_last_value = 0;
-int ring_encoder_last_value = 0;
+Motor pinkMotor = Motor(PINK_IN1, PINK_IN2, pinkEncoder);
+Motor ringMotor = Motor(RING_IN3, RING_IN4, ringEncoder);
+
+// int pink_encoder = 0;
+// int ring_encoder = 0;
+// int middle_encoder = 0;
+// int index_encoder = 0;
+// int pink_encoder_rotations = 0;
+// int ring_encoder_rotations = 0;
+// int middle_encoder_rotations = 0;
+// int index_encoder_rotations = 0;
+
+// int pink_encoder_last_value = 0;
+// int ring_encoder_last_value = 0;
 
 #define BUTTON_PIN 2
 #define STOPPED 2
@@ -88,32 +88,35 @@ double applyDeadband(double input, double threshold) {
    Stop             LOW               LOW
    Stop             HIGH              HIGH 
 */ 
-void applyPower(double speed, int in1, int in2){
-  int db_speed = applyDeadband(speed, 20);
-  if (db_speed == 0) {
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, LOW);
-  }
-  else if( db_speed > 0) {
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
-  }
-  else {
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);
-  }
-}
+// void applyPower(double speed, int in1, int in2){
+//   int db_speed = applyDeadband(speed, 20);
+//   if (db_speed == 0) {
+//     digitalWrite(in1, LOW);
+//     digitalWrite(in2, LOW);
+//   }
+//   else if( db_speed > 0) {
+//     digitalWrite(in1, HIGH);
+//     digitalWrite(in2, LOW);
+//   }
+//   else {
+//     digitalWrite(in1, LOW);
+//     digitalWrite(in2, HIGH);
+//   }
+// }
 
 void startMotors(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
 
-  // The PINK finger can only use HIGH and LOW
-  int speed = 0;
-  logOutput(pinkSpeed, ringSpeed, middleSpeed, indexSpeed);
+  pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
+  ringMotor.applyPower(rPiLink.buffer.ringMotor);
+  
 
-  applyPower(pinkSpeed, PINK_IN1, PINK_IN2);
-  applyPower(ringSpeed, RING_IN3, RING_IN4);
-  applyPower(middleSpeed, MIDDLE_IN1, MIDDLE_IN2);
-  applyPower(indexSpeed, INDEX_IN3, INDEX_IN4);
+  // int speed = 0;
+  // logOutput(pinkSpeed, ringSpeed, middleSpeed, indexSpeed);
+
+  // applyPower(pinkSpeed, PINK_IN1, PINK_IN2);
+  // applyPower(ringSpeed, RING_IN3, RING_IN4);
+  // applyPower(middleSpeed, MIDDLE_IN1, MIDDLE_IN2);
+  // applyPower(indexSpeed, INDEX_IN3, INDEX_IN4);
 }
 
 int pot_loop_count = 0;
@@ -137,56 +140,79 @@ int motorDirection(double motor) {
 }
 
 void resetEncoders() {
-  pink_encoder_rotations = 0;
-  ring_encoder_rotations = 0;
-  middle_encoder_rotations = 0;
-  index_encoder_rotations = 0;
+  // pink_encoder_rotations = 0;
+  // ring_encoder_rotations = 0;
+  // middle_encoder_rotations = 0;
+  // index_encoder_rotations = 0;
 
-  pink_encoder_last_value = 0;
-  ring_encoder_last_value = 0;
+  // pink_encoder_last_value = 0;
+  // ring_encoder_last_value = 0;
 }
 
-int readPinkEncoder()
-{
-  pink_encoder = map(analogRead(PINK_ENCODER), 0, 1023, 0, 100);
-  int diff = applyDeadband(pink_encoder - pink_encoder_last_value, 50);
-  if (diff == 0) {
-    pink_encoder_last_value = pink_encoder;
-    return pink_encoder;
-  }
+// int readPinkEncoder()
+// {
+//   pink_encoder = map(analogRead(PINK_ENCODER), 0, 1023, 0, 100);
+//   int diff = applyDeadband(pink_encoder - pink_encoder_last_value, 50);
+//   if (diff == 0) {
+//     pink_encoder_last_value = pink_encoder;
+//     return pink_encoder;
+//   }
   
-  if (diff > 0) {
-    pink_encoder_rotations += 1;
-  } else {
-    pink_encoder_rotations -= 1;
-  }
+//   if (diff > 0) {
+//     pink_encoder_rotations += 1;
+//   } else {
+//     pink_encoder_rotations -= 1;
+//   }
 
-  Serial.print("Pink rotations "); Serial.println(pink_encoder_rotations);
+//   Serial.print("Pink rotations "); Serial.println(pink_encoder_rotations);
   
-  // logEncoderOutput(pink_encoder, pink_encoder_rotations, pink_encoder_last_value, ring_encoder_rotations);
-  pink_encoder_last_value = pink_encoder;
+//   // logEncoderOutput(pink_encoder, pink_encoder_rotations, pink_encoder_last_value, ring_encoder_rotations);
+//   pink_encoder_last_value = pink_encoder;
 
-  return pink_encoder;
+//   return pink_encoder;
 
-  // ring_encoder = map(analogRead(RING_ENCODER), 0, 1023, 0, 100);
-  // if (ring_encoder < ring_encoder_last_value && motorDirection(rPiLink.buffer.ringMotor) == FORWARD) {
-  //   ring_encoder_rotations += 1;
-  // } else if (ring_encoder > ring_encoder_last_value && motorDirection(rPiLink.buffer.ringMotor) == REVERSE) {
-  //   ring_encoder_rotations -= 1;
-  // }
-  // ring_encoder_last_value = ring_encoder;
+//   // ring_encoder = map(analogRead(RING_ENCODER), 0, 1023, 0, 100);
+//   // if (ring_encoder < ring_encoder_last_value && motorDirection(rPiLink.buffer.ringMotor) == FORWARD) {
+//   //   ring_encoder_rotations += 1;
+//   // } else if (ring_encoder > ring_encoder_last_value && motorDirection(rPiLink.buffer.ringMotor) == REVERSE) {
+//   //   ring_encoder_rotations -= 1;
+//   // }
+//   // ring_encoder_last_value = ring_encoder;
 
-  // middle_encoder = map(analogRead(MIDDLE_ENCODER), 0, 1023, 0, 100);
-  // index_encoder = map(analogRead(INDEX_ENCODER), 0, 1023, 0, 100);
+//   // middle_encoder = map(analogRead(MIDDLE_ENCODER), 0, 1023, 0, 100);
+//   // index_encoder = map(analogRead(INDEX_ENCODER), 0, 1023, 0, 100);
 
   
+// }
+
+void setupMotors() {
+  // Setup motor pins
+  pinMode(PINK_IN1,OUTPUT);
+  pinMode(PINK_IN2,OUTPUT); 
+  pinMode(RING_IN3,OUTPUT);
+  pinMode(RING_IN4,OUTPUT); 
+  pinMode(MIDDLE_IN1,OUTPUT);
+  pinMode(MIDDLE_IN2,OUTPUT); 
+  pinMode(INDEX_IN3,OUTPUT);
+  pinMode(INDEX_IN4,OUTPUT); 
+
+  // For DRV8833 set all pins LOW
+  digitalWrite(PINK_IN1, LOW);
+  digitalWrite(PINK_IN2, LOW);
+  digitalWrite(RING_IN3, LOW);
+  digitalWrite(RING_IN4, LOW);
+  digitalWrite(MIDDLE_IN1, LOW);
+  digitalWrite(MIDDLE_IN2, LOW);
+  digitalWrite(INDEX_IN3, LOW);
+  digitalWrite(INDEX_IN4, LOW);
+
+  pinkMotor.init();
+  ringMotor.init();
 }
 
 void setupEncoders() {
-  resetEncoders();
-  pink_encoder = map(analogRead(PINK_ENCODER), 0, 1023, 0, 100);
-  Serial.print("Start ---- "); Serial.println(pink_encoder);
-  // readEncoders();
+  pinkEncoder.init();
+  ringEncoder.init();
 }
 
 // -------------------------------------------------- //
@@ -213,34 +239,7 @@ void setup()
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  // Setup motor pins
-  pinMode(PINK_IN1,OUTPUT);
-  pinMode(PINK_IN2,OUTPUT); 
-  pinMode(RING_IN3,OUTPUT);
-  pinMode(RING_IN4,OUTPUT); 
-  pinMode(MIDDLE_IN1,OUTPUT);
-  pinMode(MIDDLE_IN2,OUTPUT); 
-  pinMode(INDEX_IN3,OUTPUT);
-  pinMode(INDEX_IN4,OUTPUT); 
-
-  // For DRV8833 set all pins LOW
-  digitalWrite(PINK_IN1, LOW);
-  digitalWrite(PINK_IN2, LOW);
-  digitalWrite(RING_IN3, LOW);
-  digitalWrite(RING_IN4, LOW);
-  digitalWrite(MIDDLE_IN1, LOW);
-  digitalWrite(MIDDLE_IN2, LOW);
-  digitalWrite(INDEX_IN3, LOW);
-  digitalWrite(INDEX_IN4, LOW);
-
-  // delay(100);
-  // digitalWrite(PINK_IN1, HIGH);
-  // digitalWrite(PINK_IN2, LOW);
-  // delay(1000);
-  // digitalWrite(PINK_IN1, LOW);
-  // digitalWrite(PINK_IN2, LOW);
-
-  // Setup Encoders
+  setupMotors();
   setupEncoders();
 }
 
@@ -276,13 +275,10 @@ void loop() {
   //   digitalWrite(LED_BUILTIN, LOW);
   // }
   
-  // startMotors(rPiLink.buffer.pinkMotor,
-  //             rPiLink.buffer.ringMotor,
-  //             rPiLink.buffer.middleMotor,
-  //             rPiLink.buffer.indexMotor); 
-
-  pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
-  ringMotor.applyPower(rPiLink.buffer.ringMotor);
+  startMotors(rPiLink.buffer.pinkMotor,
+              rPiLink.buffer.ringMotor,
+              rPiLink.buffer.middleMotor,
+              rPiLink.buffer.indexMotor); 
 
   // Encoders
   if (rPiLink.buffer.resetLeftEncoder) {
@@ -299,8 +295,8 @@ void loop() {
   // rPiLink.buffer.rightEncoder = encoders.getCountsRight();
 
   // readPinkEncoder();
-  pinkEncoder.getPosition();
-  ringEncoder.getPosition();
+  pinkEncoder.readEncoder();
+  ringEncoder.readEncoder();
 
   // Write to buffer
   rPiLink.finalizeWrites();
