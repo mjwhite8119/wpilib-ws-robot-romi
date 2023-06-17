@@ -23,7 +23,7 @@ class Encoder
 
     int16_t readEncoder() {
       position = map(analogRead(port_), 0, 1023, 0, 100);
-      // Serial.print("readEncoder ");printInfo();
+      Serial.print("readEncoder ");printInfo();
       // Only apply a rotation if the difference is greater than 50 percent
       int16_t diff = applyDeadband(position - last_position, 50);
       if (diff == 0) {
@@ -38,7 +38,7 @@ class Encoder
       }
       last_position = position;
 
-      Serial.print("readEncoder ");printInfo();
+      // Serial.print("readEncoder ");printInfo();
   
       return position;
     }
@@ -48,7 +48,7 @@ class Encoder
 
     void resetEncoder() {
       rotations = 0;
-      printPort(); Serial.print("Reset "); printRotations();
+      Serial.print("Reset "); printInfo();
     }
 
     void printPort() {
