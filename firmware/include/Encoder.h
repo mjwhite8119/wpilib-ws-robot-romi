@@ -6,6 +6,8 @@ class Encoder
    public:
 
     // Class variables
+    int16_t rotations = 0;
+    int16_t position = 0;
 
     // Constructor to connect encoder GPIO pins to microcontroller
     Encoder(uint8_t port)
@@ -20,6 +22,7 @@ class Encoder
 
     int16_t readEncoder() {
       position = map(analogRead(port_), 0, 1023, 0, 100);
+      // Serial.print("readEncoder ");printInfo();
       // Only apply a rotation if the difference is greater than 50 percent
       int16_t diff = applyDeadband(position - last_position, 50);
       if (diff == 0) {
@@ -39,36 +42,34 @@ class Encoder
       return position;
     }
 
-    const int16_t getRotations() {return rotations;}
-    const int16_t getPosition() {return position;}
+    int16_t getRotations() {return rotations;}
+    int16_t getPosition() {return position;}
 
     void resetEncoder() {
       rotations = 0;
       printPort(); Serial.print("Reset "); printRotations();
     }
 
-    void const printPort() {
+    void printPort() {
       Serial.print("Port "); Serial.print(port_);Serial.print(": ");
     }
 
     void printPosition() {
-      Serial.print(" Position "); Serial.println(getPosition());
+      Serial.print(" Position "); Serial.println(position);
     }
 
     void printRotations() {
-      Serial.print(" Rotations "); Serial.println(getRotations());
+      Serial.print(" Rotations "); Serial.println(rotations);
     }
 
     void printInfo() {
-      printPort(); Serial.print(getRotations()); Serial.print("-"); Serial.println(getPosition());
+      printPort(); Serial.print(rotations); Serial.print(":"); Serial.println(position);
     }
 
   private:
 
     uint8_t port_;
-    int16_t position = 0;
     int16_t last_position = 0;
-    int16_t rotations = 0;
 
     int16_t applyDeadband(int16_t input, const int16_t threshold) {
       if (input < -threshold || input > threshold) {

@@ -10,7 +10,7 @@ class Motor
     // Class variables
 
     // Constructor to connect Motor GPIO pins to microcontroller
-    Motor(uint8_t in1Port, uint8_t in2Port, Encoder encoder)
+    Motor(uint8_t in1Port, uint8_t in2Port, Encoder& encoder)
       :in1Port_(in1Port), in2Port_(in2Port), encoder_(encoder)
     {}  
 
@@ -27,6 +27,7 @@ class Motor
     */ 
     void applyPower(int16_t speed){
       DBSpeed = applyDeadband(speed, 20);
+      if (DBSpeed > 400) {DBSpeed = 0;} // Take care of random values 
       if (DBSpeed == 0) {
         digitalWrite(in1Port_, LOW);
         digitalWrite(in2Port_, LOW);
@@ -38,7 +39,7 @@ class Motor
           digitalWrite(in1Port_, HIGH);
           digitalWrite(in2Port_, LOW);
           printPort(); printSpeed();
-          Serial.print("Finger flexed ");encoder_.printInfo();
+          Serial.print("Flexing ");encoder_.printInfo();
         // }
         
       }
@@ -49,7 +50,7 @@ class Motor
           digitalWrite(in1Port_, LOW);
           digitalWrite(in2Port_, HIGH);
           printPort(); printSpeed();
-          Serial.print("Finger extended "); encoder_.printInfo();
+          Serial.print("Extending "); encoder_.printInfo();
         // }  
       }
     }
@@ -78,8 +79,8 @@ class Motor
 
     uint8_t in1Port_;
     uint8_t in2Port_;
-    int DBSpeed = 0;
     Encoder encoder_;
+    int DBSpeed = 0;
 
     double applyDeadband(double input, double threshold) {
       if (input < -threshold || input > threshold) {

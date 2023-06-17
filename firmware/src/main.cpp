@@ -211,11 +211,15 @@ void setupMotors() {
 
   pinkMotor.init();
   ringMotor.init();
+  middleMotor.init();
+  indexMotor.init();
 }
 
 void setupEncoders() {
   pinkEncoder.init();
   ringEncoder.init();
+  middleEncoder.init();
+  indexEncoder.init();
 }
 
 // -------------------------------------------------- //
@@ -235,6 +239,8 @@ void setup()
   rPiLink.buffer.status = 1;
   rPiLink.buffer.pinkMotor = 0;
   rPiLink.buffer.ringMotor = 0;
+  rPiLink.buffer.middleMotor = 0;
+  rPiLink.buffer.indexMotor = 0;
   
   // Setup pin 13 as output and turn LED off
   pinMode(LED_BUILTIN, OUTPUT);
@@ -242,8 +248,8 @@ void setup()
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
-  setupMotors();
   setupEncoders();
+  setupMotors();
 }
 
 void loop() {
@@ -258,6 +264,10 @@ void loop() {
   // Update the built-ins.  These are 4 boolean values
   rPiLink.buffer.builtinDioValues[0] = digitalRead(BUTTON_PIN);
 
+  if (digitalRead(BUTTON_PIN) == HIGH) {
+    pinkEncoder.resetEncoder();
+    ringEncoder.resetEncoder();
+  }
   // Check if button A is pressed
   // if (rPiLink.buffer.builtinDioValues[0] == HIGH) {
   //   Serial.println("ButtonA is pressed...");
@@ -284,9 +294,9 @@ void loop() {
   //             rPiLink.buffer.indexMotor); 
 
   pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
-  ringMotor.applyPower(rPiLink.buffer.ringMotor);
-  middleMotor.applyPower(rPiLink.buffer.middleMotor);
-  indexMotor.applyPower(rPiLink.buffer.indexMotor);
+  // ringMotor.applyPower(rPiLink.buffer.ringMotor);
+  // middleMotor.applyPower(rPiLink.buffer.middleMotor);
+  // indexMotor.applyPower(rPiLink.buffer.indexMotor);
 
   // Encoders
   if (rPiLink.buffer.resetLeftEncoder) {
@@ -302,9 +312,10 @@ void loop() {
   // rPiLink.buffer.leftEncoder = encoders.getCountsLeft();
   // rPiLink.buffer.rightEncoder = encoders.getCountsRight();
 
-  // readPinkEncoder();
   pinkEncoder.readEncoder();
-  ringEncoder.readEncoder();
+  // ringEncoder.readEncoder();
+  middleEncoder.readEncoder();
+  indexEncoder.readEncoder();
 
   // Write to buffer
   rPiLink.finalizeWrites();
