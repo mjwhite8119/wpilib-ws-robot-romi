@@ -2,7 +2,6 @@
 #include <PololuRPiSlave.h>
 
 #include "shmem_buffer.h"
-#include "Encoder.h"
 #include "Motor.h"
 
 // Addresses for Arduinos
@@ -19,10 +18,10 @@ PololuRPiSlave<Data, 20> rPiLink;
 #define MIDDLE_ENCODER A2
 #define INDEX_ENCODER A3
 
-Encoder pinkEncoder = Encoder(PINK_ENCODER);
-Encoder ringEncoder = Encoder(RING_ENCODER);
-Encoder middleEncoder = Encoder(MIDDLE_ENCODER);
-Encoder indexEncoder = Encoder(INDEX_ENCODER);
+// Encoder pinkEncoder = Encoder(PINK_ENCODER);
+// Encoder ringEncoder = Encoder(RING_ENCODER);
+// Encoder middleEncoder = Encoder(MIDDLE_ENCODER);
+// Encoder indexEncoder = Encoder(INDEX_ENCODER);
 
 // Nano PWM pins 3,5,6,9,10 and 11. 
 // The PINK finger does not use PWM because the Nano 
@@ -36,10 +35,10 @@ Encoder indexEncoder = Encoder(INDEX_ENCODER);
 #define INDEX_IN3 9 
 #define INDEX_IN4 6 
 
-Motor pinkMotor = Motor(PINK_IN1, PINK_IN2, pinkEncoder);
-Motor ringMotor = Motor(RING_IN3, RING_IN4, ringEncoder);
-Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, middleEncoder);
-Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, indexEncoder);
+Motor pinkMotor = Motor(PINK_IN1, PINK_IN2, PINK_ENCODER);
+Motor ringMotor = Motor(RING_IN3, RING_IN4, RING_ENCODER);
+Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, MIDDLE_ENCODER);
+Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, INDEX_ENCODER);
 
 // int pink_encoder = 0;
 // int ring_encoder = 0;
@@ -216,10 +215,10 @@ void setupMotors() {
 }
 
 void setupEncoders() {
-  pinkEncoder.init();
-  ringEncoder.init();
-  middleEncoder.init();
-  indexEncoder.init();
+  // pinkEncoder.init();
+  // ringEncoder.init();
+  // middleEncoder.init();
+  // indexEncoder.init();
 }
 
 // -------------------------------------------------- //
@@ -265,8 +264,10 @@ void loop() {
   rPiLink.buffer.builtinDioValues[0] = digitalRead(BUTTON_PIN);
 
   if (digitalRead(BUTTON_PIN) == HIGH) {
-    pinkEncoder.resetEncoder();
-    ringEncoder.resetEncoder();
+    pinkMotor.encoder.resetEncoder();
+    ringMotor.encoder.resetEncoder();
+    middleMotor.encoder.resetEncoder();
+    indexMotor.encoder.resetEncoder();
   }
   // Check if button A is pressed
   // if (rPiLink.buffer.builtinDioValues[0] == HIGH) {
@@ -294,28 +295,28 @@ void loop() {
   //             rPiLink.buffer.indexMotor); 
 
   pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
-  // ringMotor.applyPower(rPiLink.buffer.ringMotor);
-  // middleMotor.applyPower(rPiLink.buffer.middleMotor);
-  // indexMotor.applyPower(rPiLink.buffer.indexMotor);
+  ringMotor.applyPower(rPiLink.buffer.ringMotor);
+  middleMotor.applyPower(rPiLink.buffer.middleMotor);
+  indexMotor.applyPower(rPiLink.buffer.indexMotor);
 
   // Encoders
   if (rPiLink.buffer.resetLeftEncoder) {
     rPiLink.buffer.resetLeftEncoder = false;
-    pinkEncoder.resetEncoder();
+    pinkMotor.encoder.resetEncoder();
   }
 
   if (rPiLink.buffer.resetRightEncoder) {
     rPiLink.buffer.resetRightEncoder = false;
-    ringEncoder.resetEncoder();
+    ringMotor.encoder.resetEncoder();
   }
 
   // rPiLink.buffer.leftEncoder = encoders.getCountsLeft();
   // rPiLink.buffer.rightEncoder = encoders.getCountsRight();
 
-  pinkEncoder.readEncoder();
-  // ringEncoder.readEncoder();
-  middleEncoder.readEncoder();
-  indexEncoder.readEncoder();
+  pinkMotor.encoder.readEncoder();
+  ringMotor.encoder.readEncoder();
+  middleMotor.encoder.readEncoder();
+  indexMotor.encoder.readEncoder();
 
   // Write to buffer
   rPiLink.finalizeWrites();

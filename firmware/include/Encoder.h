@@ -5,7 +5,8 @@ class Encoder
 {  
    public:
 
-    // Class variables
+    Encoder() {} // Default constructor  
+
     int16_t rotations = 0;
     int16_t position = 0;
 

@@ -3,20 +3,33 @@
 
 #include <Arduino.h>
 
+#ifndef Encoder
+  #include "Encoder.h"
+#endif
+
 class Motor
 {  
    public:
 
+    Motor() {} // Default constructor
+
     // Class variables
 
     // Constructor to connect Motor GPIO pins to microcontroller
-    Motor(uint8_t in1Port, uint8_t in2Port, Encoder& encoder)
-      :in1Port_(in1Port), in2Port_(in2Port), encoder_(encoder)
-    {}  
+    Motor(uint8_t in1Port, uint8_t in2Port, uint8_t encoderPort)
+      :in1Port_(in1Port), in2Port_(in2Port), encoder(encoderPort) {}  
+
+    // Motor ports
+    uint8_t in1Port_;
+    uint8_t in2Port_;
+
+    // Encoder attached to the motor
+    Encoder encoder;
 
     void init() {
       Serial.print("Motor initiated on "); printPort(); Serial.println("");
-      Serial.print("Encoder "); encoder_.printPort(); Serial.println("");
+      encoder.resetEncoder();
+      Serial.print("Encoder "); encoder.printPort(); Serial.println("");
     }
 
     /*                IN3/IN1           IN4/IN2
@@ -39,7 +52,7 @@ class Motor
           digitalWrite(in1Port_, HIGH);
           digitalWrite(in2Port_, LOW);
           printPort(); printSpeed();
-          Serial.print("Flexing ");encoder_.printInfo();
+          Serial.print("Flexing ");encoder.printInfo();
         // }
         
       }
@@ -50,7 +63,7 @@ class Motor
           digitalWrite(in1Port_, LOW);
           digitalWrite(in2Port_, HIGH);
           printPort(); printSpeed();
-          Serial.print("Extending "); encoder_.printInfo();
+          Serial.print("Extending "); encoder.printInfo();
         // }  
       }
     }
@@ -77,9 +90,6 @@ class Motor
 
   private:
 
-    uint8_t in1Port_;
-    uint8_t in2Port_;
-    Encoder encoder_;
     int DBSpeed = 0;
 
     double applyDeadband(double input, double threshold) {
