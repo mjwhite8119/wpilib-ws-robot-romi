@@ -7,16 +7,17 @@
 // Addresses for Arduinos
 #define ARDUINO_1_ADDRESS 20 // I2C Address of Arduino 1
 #define ARDUINO_2_ADDRESS 21 // I2C Address of Arduino 1
+#define LED_BUILTIN 2
 
 // Buffer and delay time
 PololuRPiSlave<Data, 20> rPiLink;
 
 // --- Define ENCODERS ---
 
-#define PINK_ENCODER A0
-#define RING_ENCODER A1
-#define MIDDLE_ENCODER A2
-#define INDEX_ENCODER A3
+#define PINK_ENCODER 10
+#define RING_ENCODER 11
+#define MIDDLE_ENCODER 12
+#define INDEX_ENCODER 13
 
 // Nano PWM pins 3,5,6,9,10 and 11. 
 // The PINK finger does not use PWM because the Nano 
