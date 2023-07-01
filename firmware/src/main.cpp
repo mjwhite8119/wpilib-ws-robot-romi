@@ -24,8 +24,10 @@ ESP32RPiSlave<Data, 20> rPiLink;
 // Nano PWM pins 3,5,6,9,10 and 11. 
 // The PINK finger does not use PWM because the Nano 
 // only has 6 PWM pins.
-#define PINK_IN1 38
-#define PINK_IN2 35 
+// #define PINK_IN1 38
+// #define PINK_IN2 35 
+#define PINK_IN1 15
+#define PINK_IN2 16 
 #define RING_IN3 34 
 #define RING_IN4 27 
 #define MIDDLE_IN1 25 
@@ -38,7 +40,7 @@ Motor ringMotor = Motor(RING_IN3, RING_IN4, RING_ENCODER);
 Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, MIDDLE_ENCODER);
 Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, INDEX_ENCODER);
 
-#define BUTTON_PIN 5
+#define BUTTON_PIN 10
 #define BUTTON_PIN2 8
 
 #define STOPPED 2
