@@ -3,6 +3,7 @@
 #include "shmem_buffer.h"
 #include "Motor.h"
 #include "Wire.h"
+#include "ESP32RPiSlave.h"
 
 // Addresses for esp32s
 #define I2C_DEV_ADDR 0x55
@@ -11,33 +12,35 @@
 #define LED_BUILTIN 2
 
 // Buffer and delay time
-// ESP32RPiSlave<Data, 20> rPiLink;
+ESP32RPiSlave<Data, 20> rPiLink;
 
 // --- Define ENCODERS ---
 
-#define PINK_ENCODER 10
-#define RING_ENCODER 11
-#define MIDDLE_ENCODER 12
-#define INDEX_ENCODER 13
+#define PINK_ENCODER 11
+#define RING_ENCODER 12
+#define MIDDLE_ENCODER 13
+#define INDEX_ENCODER 14
 
 // Nano PWM pins 3,5,6,9,10 and 11. 
 // The PINK finger does not use PWM because the Nano 
 // only has 6 PWM pins.
-#define PINK_IN1 8
-#define PINK_IN2 7 
-#define RING_IN3 3 
-#define RING_IN4 5 
-#define MIDDLE_IN1 11 
-#define MIDDLE_IN2 10 
-#define INDEX_IN3 9 
-#define INDEX_IN4 6 
+#define PINK_IN1 38
+#define PINK_IN2 35 
+#define RING_IN3 34 
+#define RING_IN4 27 
+#define MIDDLE_IN1 25 
+#define MIDDLE_IN2 24 
+#define INDEX_IN3 22 
+#define INDEX_IN4 21 
 
 Motor pinkMotor = Motor(PINK_IN1, PINK_IN2, PINK_ENCODER);
 Motor ringMotor = Motor(RING_IN3, RING_IN4, RING_ENCODER);
 Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, MIDDLE_ENCODER);
 Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, INDEX_ENCODER);
 
-#define BUTTON_PIN 2
+#define BUTTON_PIN 5
+#define BUTTON_PIN2 8
+
 #define STOPPED 2
 #define FORWARD 1
 #define REVERSE 0
@@ -49,17 +52,19 @@ int button_state = LOW;
 uint32_t i = 0;
 
 void onRequest(){
-  Wire.print(i++);
-  Wire.print(" Packets.");
-  Serial.println("onRequest");
+  // Wire.print(i++);
+  // Wire.print(" Packets.");
+  // Serial.println("onRequest");
+  rPiLink.transmit();
 }
 
 void onReceive(int len){
-  Serial.printf("onReceive[%d]: ", len);
-  while(Wire.available()){
-    Serial.write(Wire.read());
-  }
-  Serial.println();
+  rPiLink.receive(len);
+  // Serial.printf("onReceive[%d]: ", len);
+  // while(Wire.available()){
+  //   Serial.write(Wire.read());
+  // }
+  // Serial.println();
 }
 
 void logOutput(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
@@ -115,17 +120,17 @@ void setup()
 
   // Join I2C bus as slave with address 0x20 Arduino 1
   // or 0x21 for Arduino 2
-  // rPiLink.init(ARDUINO_1_ADDRESS);
+  // rPiLink.init(I2C_DEV_ADDR);
   Wire.onReceive(onReceive);
   Wire.onRequest(onRequest);
   Wire.begin((uint8_t)I2C_DEV_ADDR);
 
   // RPi wants the status to be 1 otherwise it will report a brownout.
-  // rPiLink.buffer.status = 1;
-  // rPiLink.buffer.pinkMotor = 0;
-  // rPiLink.buffer.ringMotor = 0;
-  // rPiLink.buffer.middleMotor = 0;
-  // rPiLink.buffer.indexMotor = 0;
+  rPiLink.buffer.status = 1;
+  rPiLink.buffer.pinkMotor = 0;
+  rPiLink.buffer.ringMotor = 0;
+  rPiLink.buffer.middleMotor = 0;
+  rPiLink.buffer.indexMotor = 0;
   
   // Setup pin 13 as output and turn LED off
   pinMode(LED_BUILTIN, OUTPUT);
@@ -145,21 +150,29 @@ void setup()
 void loop() {
 
   // Get the latest data including recent i2c master writes
-  // rPiLink.updateBuffer();
+  rPiLink.updateBuffer();
 
   // Constantly write the firmware ident
-  // rPiLink.buffer.firmwareIdent = FIRMWARE_IDENT;
-  // rPiLink.buffer.status = 1;
+  rPiLink.buffer.firmwareIdent = FIRMWARE_IDENT;
+  rPiLink.buffer.status = 1;
 
   // Update the built-ins.  These are 4 boolean values
   // rPiLink.buffer.builtinDioValues[0] = digitalRead(BUTTON_PIN);
 
   if (digitalRead(BUTTON_PIN) == HIGH) {
     pinkMotor.encoder.resetEncoder();
-    ringMotor.encoder.resetEncoder();
-    middleMotor.encoder.resetEncoder();
-    indexMotor.encoder.resetEncoder();
+    // ringMotor.encoder.resetEncoder();
+    // middleMotor.encoder.resetEncoder();
+    // indexMotor.encoder.resetEncoder();
   }
+
+  if (digitalRead(BUTTON_PIN2) == HIGH) {
+    rPiLink.buffer.pinkMotor = 200;
+  }
+  else {
+    rPiLink.buffer.pinkMotor = 0;
+  }
+  
   // Check if button A is pressed
   // if (rPiLink.buffer.builtinDioValues[0] == HIGH) {
   //   Serial.println("ButtonA is pressed...");
@@ -180,7 +193,7 @@ void loop() {
   //   digitalWrite(LED_BUILTIN, LOW);
   // }
 
-  // pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
+  pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
   // ringMotor.applyPower(rPiLink.buffer.ringMotor);
   // middleMotor.applyPower(rPiLink.buffer.middleMotor);
   // indexMotor.applyPower(rPiLink.buffer.indexMotor);
@@ -200,10 +213,10 @@ void loop() {
   // rPiLink.buffer.rightEncoder = encoders.getCountsRight();
 
   // pinkMotor.encoder.readEncoder();
-  ringMotor.encoder.readEncoder();
+  // ringMotor.encoder.readEncoder();
   // middleMotor.encoder.readEncoder();
   // indexMotor.encoder.readEncoder();
 
   // Write to buffer
-  // rPiLink.finalizeWrites();
+  rPiLink.finalizeWrites();
 }
