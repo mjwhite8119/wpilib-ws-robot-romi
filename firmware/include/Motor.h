@@ -7,6 +7,10 @@
   #include "Encoder.h"
 #endif
 
+#define STOPPED 2
+#define FORWARD 1
+#define REVERSE 0
+
 class Motor
 {  
    public:
@@ -44,6 +48,8 @@ class Motor
       if (DBSpeed == 0) {
         digitalWrite(in1Port_, LOW);
         digitalWrite(in2Port_, LOW);
+        encoder.direction = STOPPED;
+        // Serial.print("Flexing SPEED 0 ");encoder.printInfo();
       }
       else if( DBSpeed > 0) {
         // if (encoder_.getRotations() > 1) {
@@ -51,7 +57,8 @@ class Motor
         // } else {
           digitalWrite(in1Port_, HIGH);
           digitalWrite(in2Port_, LOW);
-          printPort(); printSpeed();
+          encoder.direction = FORWARD;
+          // printPort(); printSpeed();
           Serial.print("Flexing ");encoder.printInfo();
         // }
         
@@ -62,31 +69,32 @@ class Motor
         // } else {
           digitalWrite(in1Port_, LOW);
           digitalWrite(in2Port_, HIGH);
+          encoder.direction = REVERSE;
           printPort(); printSpeed();
           Serial.print("Extending "); encoder.printInfo();
         // }  
       }
     }
 
-    void applyPWMPower(int16_t speed) {
-      DBSpeed = applyDeadband(speed, 20);
-      if (DBSpeed == 0) {
-        digitalWrite(in1Port_, LOW);
-        digitalWrite(in2Port_, LOW);
-      } 
-      else if (DBSpeed > 0) {
-        analogWrite(in1Port_, DBSpeed);
-        digitalWrite(in2Port_, LOW);
-        // printPort(); printSpeed();
-        // Serial.print("Finger flexed ");encoder_.printInfo();
-      }
-      else {
-        digitalWrite(in1Port_, LOW);
-        analogWrite(in2Port_, DBSpeed);
-        // printPort(); printSpeed();
-        // Serial.print("Finger extended "); encoder_.printInfo();
-      }
-    }
+    // void applyPWMPower(int16_t speed) {
+    //   DBSpeed = applyDeadband(speed, 20);
+    //   if (DBSpeed == 0) {
+    //     digitalWrite(in1Port_, LOW);
+    //     digitalWrite(in2Port_, LOW);
+    //   } 
+    //   else if (DBSpeed > 0) {
+    //     analogWrite(in1Port_, DBSpeed);
+    //     digitalWrite(in2Port_, LOW);
+    //     // printPort(); printSpeed();
+    //     // Serial.print("Finger flexed ");encoder_.printInfo();
+    //   }
+    //   else {
+    //     digitalWrite(in1Port_, LOW);
+    //     analogWrite(in2Port_, DBSpeed);
+    //     // printPort(); printSpeed();
+    //     // Serial.print("Finger extended "); encoder_.printInfo();
+    //   }
+    // }
 
   private:
 

@@ -1,14 +1,20 @@
 #ifndef _ENCODER_H_
 #define _ENCODER_H_
 
+#define STOPPED 2
+#define FORWARD 1
+#define REVERSE 0
+
 class Encoder
 {  
    public:
 
     Encoder() {} // Default constructor  
 
+    uint8_t direction = STOPPED;
     int16_t rotations = 0;
     int16_t position = 0;
+    int16_t raw = 0;
 
     // Constructor to connect encoder GPIO pins to microcontroller
     Encoder(uint8_t port)
@@ -22,14 +28,16 @@ class Encoder
     }
 
     int16_t readEncoder() {
-      position = map(analogRead(port_), 0, 1023, 0, 100);
-      Serial.print("readEncoder ");printInfo();
+      position = map(analogRead(port_), 0, 4095, 0, 100);
+      raw = analogRead(port_);
+      // Serial.print("readEncoder ");printInfo();
       // Only apply a rotation if the difference is greater than 50 percent
       int16_t diff = applyDeadband(position - last_position, 50);
       if (diff == 0) {
         last_position = position;
         return position;
       }
+
       
       if (diff > 0) {
         rotations += 1;
@@ -64,7 +72,7 @@ class Encoder
     }
 
     void printInfo() {
-      printPort(); Serial.print(rotations); Serial.print(":"); Serial.println(position);
+      printPort(); Serial.print(rotations); Serial.print(":"); Serial.print(position);Serial.print(" Raw "); Serial.println(raw);
     }
 
   private:

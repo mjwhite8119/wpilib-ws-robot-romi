@@ -15,37 +15,30 @@
 ESP32RPiSlave<Data, 20> rPiLink;
 
 // --- Define ENCODERS ---
+// These refer to the GPIO numbers
+#define PINK_ENCODER 34
+#define RING_ENCODER 35
+#define MIDDLE_ENCODER 32
+#define INDEX_ENCODER 33
 
-#define PINK_ENCODER 11
-#define RING_ENCODER 12
-#define MIDDLE_ENCODER 13
-#define INDEX_ENCODER 14
-
-// Nano PWM pins 3,5,6,9,10 and 11. 
-// The PINK finger does not use PWM because the Nano 
-// only has 6 PWM pins.
-// #define PINK_IN1 38
-// #define PINK_IN2 35 
-#define PINK_IN1 15
-#define PINK_IN2 16 
-#define RING_IN3 34 
-#define RING_IN4 27 
-#define MIDDLE_IN1 25 
-#define MIDDLE_IN2 24 
-#define INDEX_IN3 22 
-#define INDEX_IN4 21 
+// --- Define MOTORS ---
+// These refer to the GPIO numbers
+#define PINK_IN1 26
+#define PINK_IN2 27 
+#define RING_IN3 19 
+#define RING_IN4 18 
+#define MIDDLE_IN1 5 
+#define MIDDLE_IN2 17 
+#define INDEX_IN3 16 
+#define INDEX_IN4 4 
 
 Motor pinkMotor = Motor(PINK_IN1, PINK_IN2, PINK_ENCODER);
-Motor ringMotor = Motor(RING_IN3, RING_IN4, RING_ENCODER);
-Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, MIDDLE_ENCODER);
-Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, INDEX_ENCODER);
+// Motor ringMotor = Motor(RING_IN3, RING_IN4, RING_ENCODER);
+// Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, MIDDLE_ENCODER);
+// Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, INDEX_ENCODER);
 
-#define BUTTON_PIN 10
-#define BUTTON_PIN2 8
-
-#define STOPPED 2
-#define FORWARD 1
-#define REVERSE 0
+#define BUTTON_PIN 14
+#define BUTTON_PIN2 12
 
 int loop_count = 0;
 int print_count = 0;
@@ -107,9 +100,9 @@ void setupMotors() {
   digitalWrite(INDEX_IN4, LOW);
 
   pinkMotor.init();
-  ringMotor.init();
-  middleMotor.init();
-  indexMotor.init();
+  // ringMotor.init();
+  // middleMotor.init();
+  // indexMotor.init();
 }
 
 // -------------------------------------------------- //
@@ -117,15 +110,15 @@ void setupMotors() {
 // -------------------------------------------------- //
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Setting Up..."); 
 
   // Join I2C bus as slave with address 0x20 Arduino 1
   // or 0x21 for Arduino 2
   // rPiLink.init(I2C_DEV_ADDR);
-  Wire.onReceive(onReceive);
-  Wire.onRequest(onRequest);
-  Wire.begin((uint8_t)I2C_DEV_ADDR);
+  // Wire.onReceive(onReceive);
+  // Wire.onRequest(onRequest);
+  // Wire.begin((uint8_t)I2C_DEV_ADDR);
 
   // RPi wants the status to be 1 otherwise it will report a brownout.
   rPiLink.buffer.status = 1;
@@ -139,14 +132,15 @@ void setup()
   digitalWrite(LED_BUILTIN, LOW);
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_PIN2, INPUT_PULLUP);
 
   setupMotors();
 
-#if CONFIG_IDF_TARGET_ESP32
-  char message[64];
-  snprintf(message, 64, "%u Packets.", i++);
-  Wire.slaveWrite((uint8_t *)message, strlen(message));
-#endif
+// #if CONFIG_IDF_TARGET_ESP32
+//   char message[64];
+//   snprintf(message, 64, "%u Packets.", i++);
+//   Wire.slaveWrite((uint8_t *)message, strlen(message));
+// #endif
 }
 
 void loop() {
@@ -161,15 +155,16 @@ void loop() {
   // Update the built-ins.  These are 4 boolean values
   // rPiLink.buffer.builtinDioValues[0] = digitalRead(BUTTON_PIN);
 
-  if (digitalRead(BUTTON_PIN) == HIGH) {
+  if (digitalRead(BUTTON_PIN) == LOW) {
     pinkMotor.encoder.resetEncoder();
     // ringMotor.encoder.resetEncoder();
     // middleMotor.encoder.resetEncoder();
     // indexMotor.encoder.resetEncoder();
   }
 
-  if (digitalRead(BUTTON_PIN2) == HIGH) {
+  if (digitalRead(BUTTON_PIN2) == LOW) {
     rPiLink.buffer.pinkMotor = 200;
+    pinkMotor.encoder.readEncoder();
   }
   else {
     rPiLink.buffer.pinkMotor = 0;
