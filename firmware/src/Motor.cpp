@@ -3,8 +3,8 @@
 // -------------------Constructors -----------------------------------
 
 // Constructor to connect Motor GPIO pins to microcontroller
-Motor::Motor(uint8_t in1Port, uint8_t in2Port, uint8_t encoderPort)
-  :in1Port_(in1Port), in2Port_(in2Port), encoder(encoderPort) {}  
+Motor::Motor(uint8_t encoderPort, uint8_t in1Port, uint8_t in2Port)
+  :encoder(encoderPort), in1Port_(in1Port), in2Port_(in2Port) {}  
 
 
 void Motor::init() {

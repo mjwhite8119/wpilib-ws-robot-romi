@@ -32,7 +32,7 @@ ESP32RPiSlave<Data, 20> rPiLink;
 #define INDEX_IN3 16 
 #define INDEX_IN4 4 
 
-Motor pinkMotor = Motor(PINK_IN1, PINK_IN2, PINK_ENCODER);
+Motor pinkMotor = Motor(PINK_ENCODER, PINK_IN1, PINK_IN2);
 // Motor ringMotor = Motor(RING_IN3, RING_IN4, RING_ENCODER);
 // Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, MIDDLE_ENCODER);
 // Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, INDEX_ENCODER);

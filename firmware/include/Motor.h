@@ -20,7 +20,7 @@ class Motor
     Motor() {} // Default constructor
 
     // Constructor to connect Motor GPIO pins to microcontroller
-    Motor(uint8_t in1Port, uint8_t in2Port, uint8_t encoderPort);
+    Motor( uint8_t encoderPort, uint8_t in1Port, uint8_t in2Port);
 
     // Encoder attached to the motor
     Encoder encoder;
