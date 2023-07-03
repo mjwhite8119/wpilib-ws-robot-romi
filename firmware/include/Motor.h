@@ -43,8 +43,11 @@ class Motor
       Stop             HIGH              HIGH 
     */ 
     void applyPower(int16_t speed){
+      encoder.readEncoder();
+
       DBSpeed = applyDeadband(speed, 20);
       if (DBSpeed > 400) {DBSpeed = 0;} // Take care of random values 
+      
       if (DBSpeed == 0) {
         digitalWrite(in1Port_, LOW);
         digitalWrite(in2Port_, LOW);

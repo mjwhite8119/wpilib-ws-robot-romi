@@ -164,7 +164,7 @@ void loop() {
 
   if (digitalRead(BUTTON_PIN2) == LOW) {
     rPiLink.buffer.pinkMotor = 200;
-    pinkMotor.encoder.readEncoder();
+    // pinkMotor.encoder.readEncoder();
   }
   else {
     rPiLink.buffer.pinkMotor = 0;

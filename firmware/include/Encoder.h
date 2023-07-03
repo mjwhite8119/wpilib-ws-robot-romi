@@ -15,6 +15,7 @@ class Encoder
     int16_t rotations = 0;
     int16_t position = 0;
     int16_t raw = 0;
+    boolean transitioning = false;
 
     // Constructor to connect encoder GPIO pins to microcontroller
     Encoder(uint8_t port)
@@ -27,28 +28,37 @@ class Encoder
       printPort(); Serial.print("Initialized. "); printPosition(); printRotations();
     }
 
-    int16_t readEncoder() {
-      position = map(analogRead(port_), 0, 4095, 0, 100);
+    uint16_t readEncoder() {
       raw = analogRead(port_);
-      // Serial.print("readEncoder ");printInfo();
-      // Only apply a rotation if the difference is greater than 50 percent
-      int16_t diff = applyDeadband(position - last_position, 50);
-      if (diff == 0) {
-        last_position = position;
-        return position;
+      position = map(raw, 0, 4095, 0, 100);
+      
+      if (position != 100) {
+        transitioning = false;
+        return (rotations * 100) + position;
       }
 
+      // Stopped at 100 so return current value since we have no direction
+      if (direction == STOPPED) {
+        return (rotations * 100) + position;
+      }
+
+      // We've taken care of the rotations already so return
+      if (transitioning == true) {
+        return (rotations * 100) + position;
+      }
       
-      if (diff > 0) {
+      // Transitioning so take care of business
+      transitioning = true;
+
+      if (direction == FORWARD) {
         rotations += 1;
       } else {
-        rotations -= 1;
+        rotations -= 1;  
       }
-      last_position = position;
 
       // Serial.print("readEncoder ");printInfo();
   
-      return position;
+      return (rotations * 100) + position;
     }
 
     int16_t getRotations() {return rotations;}
