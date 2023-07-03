@@ -17,6 +17,7 @@ class Encoder
     int16_t rotations = 0;
     int16_t position = 0;
     int16_t raw = 0;
+    int16_t offset = 0;
     boolean transitioning = false;
 
     // Constructor to connect encoder GPIO pins to microcontroller
@@ -24,10 +25,10 @@ class Encoder
 
     void init();
 
-    uint16_t readEncoder();
+    int16_t readEncoder();
 
-    int16_t getRotations() {return rotations;}
-    int16_t getPosition() {return position;}
+    int16_t getRotations() {return rotations * 100;}
+    int16_t getPosition() {return position - offset;}
 
     void resetEncoder();
 
@@ -44,7 +45,8 @@ class Encoder
     }
 
     void printInfo() {
-      printPort(); Serial.print(rotations); Serial.print(":"); Serial.print(position);Serial.print(" Raw "); Serial.println(raw);
+      printPort(); Serial.print(rotations); Serial.print(":"); Serial.print(position);
+      Serial.print(" Raw "); Serial.print(raw);Serial.print(" Offset "); Serial.println(offset);
     }
 
   private:

@@ -3,8 +3,8 @@
 // -------------------Constructors -----------------------------------
 
 // Constructor to connect Motor GPIO pins to microcontroller
-Motor::Motor(uint8_t encoderPort, uint8_t in1Port, uint8_t in2Port)
-  :encoder(encoderPort), in1Port_(in1Port), in2Port_(in2Port) 
+Motor::Motor(uint8_t encoderPort, uint8_t in1Port, uint8_t in2Port, uint8_t mode)
+  :encoder(encoderPort), in1Port_(in1Port), in2Port_(in2Port), mode_(mode) 
   {
     pinMode(in1Port,OUTPUT);
     pinMode(in2Port,OUTPUT); 
@@ -13,13 +13,16 @@ Motor::Motor(uint8_t encoderPort, uint8_t in1Port, uint8_t in2Port)
     digitalWrite(in1Port, LOW);
     digitalWrite(in2Port, LOW);
 
-    // create a PWM channels
-    ledcSetup(in1Port, freq, resolution); 
-    ledcSetup(in2Port, freq, resolution);
+    if (mode == 1) {
+      // create a PWM channels
+      ledcSetup(in1Port, freq, resolution); 
+      ledcSetup(in2Port, freq, resolution);
 
-    // attach channels to pins
-    ledcAttachPin(in1Port, 0); 
-    ledcAttachPin(in1Port, 1);
+      // // attach channels to pins
+      ledcAttachPin(in1Port, 0); 
+      ledcAttachPin(in1Port, 1);
+    }
+    
   }  
 
 
@@ -36,7 +39,7 @@ void Motor::init() {
   Stop             HIGH              HIGH 
 */ 
 void Motor::applyPower(int16_t speed){
-  uint16_t continuous_position = encoder.readEncoder();
+  int16_t continuous_position = encoder.readEncoder();
   
   DBSpeed_ = applyDeadband(speed, 20);
   if (DBSpeed_ > 400) {DBSpeed_ = 0;} // Take care of random values 

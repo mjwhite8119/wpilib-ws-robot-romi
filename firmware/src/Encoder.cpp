@@ -11,26 +11,30 @@ void Encoder::init() {
   printPort(); Serial.print("Initialized. "); printPosition(); printRotations();
 }
 
-uint16_t Encoder::readEncoder() {
+int16_t Encoder::readEncoder() {
   raw = analogRead(port_);
   position = map(raw, 0, 4095, 0, 100);
   
   if (position != 100) {
     if (transitioning & (direction == FORWARD) & (position != 0)) {
-      return rotations * 100;
+      return getRotations() - offset;
     }
+    else if (transitioning & (direction == REVERSE) & (position != 100)) {
+      return getRotations() - offset;
+    }  
+
     transitioning = false;
-    return (rotations * 100) + position;
+    return getRotations() + getPosition();
   }
 
   // Stopped at 100 so return current value since we have no direction
   if (direction == STOPPED) {
-    return rotations * 100;
+    return getRotations() - offset;
   }
 
   // We've taken care of the rotations already so return
   if (transitioning == true) {
-    return rotations * 100;
+    return getRotations() - offset;
   }
   
   // Transitioning so take care of business
@@ -43,10 +47,11 @@ uint16_t Encoder::readEncoder() {
   }
 
   // Only return position so as not to double count
-  return position;
+  return getPosition();
 }
 
 void Encoder::resetEncoder() {
   rotations = 0;
+  offset = position;
   Serial.print("Reset "); printInfo();
 }

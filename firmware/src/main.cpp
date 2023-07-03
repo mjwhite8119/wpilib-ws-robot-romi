@@ -37,8 +37,9 @@ Motor pinkMotor = Motor(PINK_ENCODER, PINK_IN1, PINK_IN2);
 // Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, MIDDLE_ENCODER);
 // Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, INDEX_ENCODER);
 
-#define BUTTON_PIN 14
-#define BUTTON_PIN2 12
+#define BUTTON_PIN1 12
+#define BUTTON_PIN2 14
+#define BUTTON_PIN3 13
 
 int loop_count = 0;
 int print_count = 0;
@@ -79,26 +80,7 @@ double applyDeadband(double input, double threshold) {
 }
 
 void setupMotors() {
-  // Setup motor pins
-  // pinMode(PINK_IN1,OUTPUT);
-  // pinMode(PINK_IN2,OUTPUT); 
-  // pinMode(RING_IN3,OUTPUT);
-  // pinMode(RING_IN4,OUTPUT); 
-  // pinMode(MIDDLE_IN1,OUTPUT);
-  // pinMode(MIDDLE_IN2,OUTPUT); 
-  // pinMode(INDEX_IN3,OUTPUT);
-  // pinMode(INDEX_IN4,OUTPUT); 
-
-  // For DRV8833 set all pins LOW
-  // digitalWrite(PINK_IN1, LOW);
-  // digitalWrite(PINK_IN2, LOW);
-  // digitalWrite(RING_IN3, LOW);
-  // digitalWrite(RING_IN4, LOW);
-  // digitalWrite(MIDDLE_IN1, LOW);
-  // digitalWrite(MIDDLE_IN2, LOW);
-  // digitalWrite(INDEX_IN3, LOW);
-  // digitalWrite(INDEX_IN4, LOW);
-
+  
   pinkMotor.init();
   // ringMotor.init();
   // middleMotor.init();
@@ -131,8 +113,9 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_PIN1, INPUT_PULLUP);
   pinMode(BUTTON_PIN2, INPUT_PULLUP);
+  pinMode(BUTTON_PIN3, INPUT_PULLUP);
 
   setupMotors();
 
@@ -155,7 +138,7 @@ void loop() {
   // Update the built-ins.  These are 4 boolean values
   // rPiLink.buffer.builtinDioValues[0] = digitalRead(BUTTON_PIN);
 
-  if (digitalRead(BUTTON_PIN) == LOW) {
+  if (digitalRead(BUTTON_PIN1) == LOW) {
     pinkMotor.encoder.resetEncoder();
     // ringMotor.encoder.resetEncoder();
     // middleMotor.encoder.resetEncoder();
@@ -166,7 +149,10 @@ void loop() {
     rPiLink.buffer.pinkMotor = 200;
     // pinkMotor.encoder.readEncoder();
   }
-  else {
+  else if (digitalRead(BUTTON_PIN3) == LOW) {
+    rPiLink.buffer.pinkMotor = -200;
+    // pinkMotor.encoder.readEncoder();
+  } else {
     rPiLink.buffer.pinkMotor = 0;
   }
   
