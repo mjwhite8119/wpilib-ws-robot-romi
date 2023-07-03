@@ -1,7 +1,9 @@
 #ifndef _MOTOR_H_
 #define _MOTOR_H_
 
-#include <Arduino.h>
+#ifndef Arduino
+  #include <Arduino.h>
+#endif
 
 #ifndef Encoder
   #include "Encoder.h"
@@ -13,88 +15,28 @@
 
 class Motor
 {  
-   public:
+  public:
 
     Motor() {} // Default constructor
 
-    // Class variables
-
     // Constructor to connect Motor GPIO pins to microcontroller
-    Motor(uint8_t in1Port, uint8_t in2Port, uint8_t encoderPort)
-      :in1Port_(in1Port), in2Port_(in2Port), encoder(encoderPort) {}  
-
-    // Motor ports
-    uint8_t in1Port_;
-    uint8_t in2Port_;
+    Motor(uint8_t in1Port, uint8_t in2Port, uint8_t encoderPort);
 
     // Encoder attached to the motor
     Encoder encoder;
 
-    void init() {
-      Serial.print("Motor initiated on "); printPort(); Serial.println("");
-      encoder.resetEncoder();
-      Serial.print("Encoder "); encoder.printPort(); Serial.println("");
-    }
+    void init();
 
-    /*                IN3/IN1           IN4/IN2
-      Forward          HIGH              LOW
-      Reverse          LOW               HIGH
-      Stop             LOW               LOW
-      Stop             HIGH              HIGH 
-    */ 
-    void applyPower(int16_t speed){
-      uint16_t continuous_position = encoder.readEncoder();
-      
-      DBSpeed = applyDeadband(speed, 20);
-      if (DBSpeed > 400) {DBSpeed = 0;} // Take care of random values 
-      
-      if (DBSpeed == 0) {
-        digitalWrite(in1Port_, LOW);
-        digitalWrite(in2Port_, LOW);
-        encoder.direction = STOPPED;
-        // Serial.print("Flexing SPEED 0 ");encoder.printInfo();
-      }
-      else if( DBSpeed > 0) {
-        digitalWrite(in1Port_, HIGH);
-        digitalWrite(in2Port_, LOW);
-        encoder.direction = FORWARD;
-        // printPort(); printSpeed();
-        Serial.print("Flexing ");encoder.printInfo();
-        Serial.println(continuous_position);
-      }
-      else {
-        digitalWrite(in1Port_, LOW);
-        digitalWrite(in2Port_, HIGH);
-        encoder.direction = REVERSE;
-        printPort(); printSpeed();
-        Serial.print("Extending "); encoder.printInfo();
-        Serial.println(continuous_position);
-      }
-    }
+    void applyPower(int16_t speed);
 
-    // void applyPWMPower(int16_t speed) {
-    //   DBSpeed = applyDeadband(speed, 20);
-    //   if (DBSpeed == 0) {
-    //     digitalWrite(in1Port_, LOW);
-    //     digitalWrite(in2Port_, LOW);
-    //   } 
-    //   else if (DBSpeed > 0) {
-    //     analogWrite(in1Port_, DBSpeed);
-    //     digitalWrite(in2Port_, LOW);
-    //     // printPort(); printSpeed();
-    //     // Serial.print("Finger flexed ");encoder_.printInfo();
-    //   }
-    //   else {
-    //     digitalWrite(in1Port_, LOW);
-    //     analogWrite(in2Port_, DBSpeed);
-    //     // printPort(); printSpeed();
-    //     // Serial.print("Finger extended "); encoder_.printInfo();
-    //   }
-    // }
+    void applyPWMPower(int16_t speed);
 
   private:
+    // Motor ports
+    uint8_t in1Port_;
+    uint8_t in2Port_;
 
-    int DBSpeed = 0;
+     int DBSpeed_ = 0;
 
     double applyDeadband(double input, double threshold) {
       if (input < -threshold || input > threshold) {
@@ -108,7 +50,7 @@ class Motor
     }
 
     void printSpeed() {
-      Serial.print("Speed "); Serial.println(DBSpeed);
+      Serial.print("Speed "); Serial.println(DBSpeed_);
     }
 
 };
