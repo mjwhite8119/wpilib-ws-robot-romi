@@ -33,18 +33,21 @@ class Encoder
       position = map(raw, 0, 4095, 0, 100);
       
       if (position != 100) {
+        if (transitioning & (direction == FORWARD) & (position != 0)) {
+          return rotations * 100;
+        }
         transitioning = false;
         return (rotations * 100) + position;
       }
 
       // Stopped at 100 so return current value since we have no direction
       if (direction == STOPPED) {
-        return (rotations * 100) + position;
+        return rotations * 100;
       }
 
       // We've taken care of the rotations already so return
       if (transitioning == true) {
-        return (rotations * 100) + position;
+        return rotations * 100;
       }
       
       // Transitioning so take care of business
@@ -56,9 +59,8 @@ class Encoder
         rotations -= 1;  
       }
 
-      // Serial.print("readEncoder ");printInfo();
-  
-      return (rotations * 100) + position;
+      // Only return position so as not to double count
+      return position;
     }
 
     int16_t getRotations() {return rotations;}

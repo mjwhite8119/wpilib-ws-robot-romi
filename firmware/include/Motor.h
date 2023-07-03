@@ -43,8 +43,8 @@ class Motor
       Stop             HIGH              HIGH 
     */ 
     void applyPower(int16_t speed){
-      encoder.readEncoder();
-
+      uint16_t continuous_position = encoder.readEncoder();
+      
       DBSpeed = applyDeadband(speed, 20);
       if (DBSpeed > 400) {DBSpeed = 0;} // Take care of random values 
       
@@ -55,27 +55,20 @@ class Motor
         // Serial.print("Flexing SPEED 0 ");encoder.printInfo();
       }
       else if( DBSpeed > 0) {
-        // if (encoder_.getRotations() > 1) {
-        //   Serial.print("Finger flexed ");encoder_.printInfo();
-        // } else {
-          digitalWrite(in1Port_, HIGH);
-          digitalWrite(in2Port_, LOW);
-          encoder.direction = FORWARD;
-          // printPort(); printSpeed();
-          Serial.print("Flexing ");encoder.printInfo();
-        // }
-        
+        digitalWrite(in1Port_, HIGH);
+        digitalWrite(in2Port_, LOW);
+        encoder.direction = FORWARD;
+        // printPort(); printSpeed();
+        Serial.print("Flexing ");encoder.printInfo();
+        Serial.println(continuous_position);
       }
       else {
-        // if (encoder_.getRotations() == 0) {
-        //   Serial.print("Finger extended "); encoder_.printInfo();
-        // } else {
-          digitalWrite(in1Port_, LOW);
-          digitalWrite(in2Port_, HIGH);
-          encoder.direction = REVERSE;
-          printPort(); printSpeed();
-          Serial.print("Extending "); encoder.printInfo();
-        // }  
+        digitalWrite(in1Port_, LOW);
+        digitalWrite(in2Port_, HIGH);
+        encoder.direction = REVERSE;
+        printPort(); printSpeed();
+        Serial.print("Extending "); encoder.printInfo();
+        Serial.println(continuous_position);
       }
     }
 
