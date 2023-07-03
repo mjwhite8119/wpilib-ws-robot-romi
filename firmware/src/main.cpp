@@ -80,24 +80,24 @@ double applyDeadband(double input, double threshold) {
 
 void setupMotors() {
   // Setup motor pins
-  pinMode(PINK_IN1,OUTPUT);
-  pinMode(PINK_IN2,OUTPUT); 
-  pinMode(RING_IN3,OUTPUT);
-  pinMode(RING_IN4,OUTPUT); 
-  pinMode(MIDDLE_IN1,OUTPUT);
-  pinMode(MIDDLE_IN2,OUTPUT); 
-  pinMode(INDEX_IN3,OUTPUT);
-  pinMode(INDEX_IN4,OUTPUT); 
+  // pinMode(PINK_IN1,OUTPUT);
+  // pinMode(PINK_IN2,OUTPUT); 
+  // pinMode(RING_IN3,OUTPUT);
+  // pinMode(RING_IN4,OUTPUT); 
+  // pinMode(MIDDLE_IN1,OUTPUT);
+  // pinMode(MIDDLE_IN2,OUTPUT); 
+  // pinMode(INDEX_IN3,OUTPUT);
+  // pinMode(INDEX_IN4,OUTPUT); 
 
   // For DRV8833 set all pins LOW
-  digitalWrite(PINK_IN1, LOW);
-  digitalWrite(PINK_IN2, LOW);
-  digitalWrite(RING_IN3, LOW);
-  digitalWrite(RING_IN4, LOW);
-  digitalWrite(MIDDLE_IN1, LOW);
-  digitalWrite(MIDDLE_IN2, LOW);
-  digitalWrite(INDEX_IN3, LOW);
-  digitalWrite(INDEX_IN4, LOW);
+  // digitalWrite(PINK_IN1, LOW);
+  // digitalWrite(PINK_IN2, LOW);
+  // digitalWrite(RING_IN3, LOW);
+  // digitalWrite(RING_IN4, LOW);
+  // digitalWrite(MIDDLE_IN1, LOW);
+  // digitalWrite(MIDDLE_IN2, LOW);
+  // digitalWrite(INDEX_IN3, LOW);
+  // digitalWrite(INDEX_IN4, LOW);
 
   pinkMotor.init();
   // ringMotor.init();
@@ -191,6 +191,7 @@ void loop() {
   // }
 
   pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
+  // pinkMotor.applyPWMPower(rPiLink.buffer.pinkMotor);
   // ringMotor.applyPower(rPiLink.buffer.ringMotor);
   // middleMotor.applyPower(rPiLink.buffer.middleMotor);
   // indexMotor.applyPower(rPiLink.buffer.indexMotor);

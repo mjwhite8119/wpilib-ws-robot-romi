@@ -4,7 +4,23 @@
 
 // Constructor to connect Motor GPIO pins to microcontroller
 Motor::Motor(uint8_t encoderPort, uint8_t in1Port, uint8_t in2Port)
-  :encoder(encoderPort), in1Port_(in1Port), in2Port_(in2Port) {}  
+  :encoder(encoderPort), in1Port_(in1Port), in2Port_(in2Port) 
+  {
+    pinMode(in1Port,OUTPUT);
+    pinMode(in2Port,OUTPUT); 
+
+    // Make sure motors are off
+    digitalWrite(in1Port, LOW);
+    digitalWrite(in2Port, LOW);
+
+    // create a PWM channels
+    ledcSetup(in1Port, freq, resolution); 
+    ledcSetup(in2Port, freq, resolution);
+
+    // attach channels to pins
+    ledcAttachPin(in1Port, 0); 
+    ledcAttachPin(in1Port, 1);
+  }  
 
 
 void Motor::init() {
@@ -50,21 +66,23 @@ void Motor::applyPower(int16_t speed){
 }
 
 void Motor::applyPWMPower(int16_t speed) {
-//   DBSpeed = applyDeadband(speed, 20);
-//   if (DBSpeed == 0) {
-//     digitalWrite(in1Port_, LOW);
-//     digitalWrite(in2Port_, LOW);
-//   } 
-//   else if (DBSpeed > 0) {
-//     analogWrite(in1Port_, DBSpeed);
-//     digitalWrite(in2Port_, LOW);
-//     // printPort(); printSpeed();
-//     // Serial.print("Finger flexed ");encoder_.printInfo();
-//   }
-//   else {
-//     digitalWrite(in1Port_, LOW);
-//     analogWrite(in2Port_, DBSpeed);
-//     // printPort(); printSpeed();
-//     // Serial.print("Finger extended "); encoder_.printInfo();
-//   }
+
+  DBSpeed_ = applyDeadband(speed, 20);
+  
+  if (DBSpeed_ == 0) {
+    digitalWrite(in1Port_, LOW);
+    digitalWrite(in2Port_, LOW);
+  } 
+  else if (DBSpeed_ > 0) {
+    ledcWrite(in1Port_, abs(DBSpeed_));
+    digitalWrite(in2Port_, LOW);
+    // printPort(); printSpeed();
+    // Serial.print("Finger flexed ");encoder_.printInfo();
+  }
+  else {
+    digitalWrite(in1Port_, LOW);
+    ledcWrite(in2Port_, abs(DBSpeed_));
+    // printPort(); printSpeed();
+    // Serial.print("Finger extended "); encoder_.printInfo();
+  }
 }

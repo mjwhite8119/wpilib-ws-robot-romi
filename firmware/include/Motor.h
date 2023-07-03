@@ -25,6 +25,10 @@ class Motor
     // Encoder attached to the motor
     Encoder encoder;
 
+    // PMW for motors
+    const int freq = 30000;
+    const int resolution = 8;
+
     void init();
 
     void applyPower(int16_t speed);
