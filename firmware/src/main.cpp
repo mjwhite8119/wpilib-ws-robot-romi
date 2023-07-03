@@ -32,7 +32,12 @@ ESP32RPiSlave<Data, 20> rPiLink;
 #define INDEX_IN3 16 
 #define INDEX_IN4 4 
 
-Motor pinkMotor = Motor(PINK_ENCODER, PINK_IN1, PINK_IN2);
+// Define the motor mode here!
+#define DIGITAL 0
+#define PWM 1
+#define MOTOR_MODE PWM
+
+Motor pinkMotor = Motor(PINK_ENCODER, PINK_IN1, PINK_IN2, MOTOR_MODE);
 // Motor ringMotor = Motor(RING_IN3, RING_IN4, RING_ENCODER);
 // Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, MIDDLE_ENCODER);
 // Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, INDEX_ENCODER);
@@ -176,8 +181,13 @@ void loop() {
   //   digitalWrite(LED_BUILTIN, LOW);
   // }
 
-  pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
-  // pinkMotor.applyPWMPower(rPiLink.buffer.pinkMotor);
+  if (MOTOR_MODE == PWM ) {
+    pinkMotor.applyPWMPower(rPiLink.buffer.pinkMotor);
+  } else {
+    pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
+  }
+  
+  
   // ringMotor.applyPower(rPiLink.buffer.ringMotor);
   // middleMotor.applyPower(rPiLink.buffer.middleMotor);
   // indexMotor.applyPower(rPiLink.buffer.indexMotor);
