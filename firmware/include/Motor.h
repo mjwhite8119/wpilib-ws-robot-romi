@@ -26,8 +26,11 @@ class Motor
     Encoder encoder;
 
     // PMW for motors
+    const int channel_0 = 0;
+    const int channel_1 = 1;
     const int freq = 30000;
     const int resolution = 8;
+    const int MAX_DUTY_CYCLE = (int)(pow(2, resolution) - 1);
 
     void init();
 

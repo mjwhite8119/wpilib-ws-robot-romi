@@ -6,21 +6,22 @@
 Motor::Motor(uint8_t encoderPort, uint8_t in1Port, uint8_t in2Port, uint8_t mode)
   :encoder(encoderPort), in1Port_(in1Port), in2Port_(in2Port), mode_(mode) 
   {
-    pinMode(in1Port,OUTPUT);
-    pinMode(in2Port,OUTPUT); 
-
     // Make sure motors are off
     digitalWrite(in1Port, LOW);
     digitalWrite(in2Port, LOW);
 
     if (mode == 1) {
-      // attach channels to pins
-      // ledcAttachPin(in1Port, 0); 
-      // ledcAttachPin(in2Port, 1);
-
       // create a PWM channels
-      ledcSetup(in1Port, freq, resolution); 
-      ledcSetup(in2Port, freq, resolution);
+      ledcSetup(channel_0, freq, resolution); 
+      ledcSetup(channel_1, freq, resolution); 
+
+      // attach channels to pins
+      ledcAttachPin(in1Port, channel_0); 
+      ledcAttachPin(in2Port, channel_1);
+      
+    } else {
+      pinMode(in1Port,OUTPUT);
+      pinMode(in2Port,OUTPUT); 
     }
     
   }  
@@ -73,31 +74,41 @@ void Motor::applyPWMPower(int16_t speed) {
   DBSpeed_ = applyDeadband(speed, 20);
   
   if (DBSpeed_ == 0) {
-    // Make both pins digital
-    ledcDetachPin(in2Port_);
-    ledcDetachPin(in1Port_);
+    // // Make both pins digital
+    // ledcDetachPin(in2Port_);
+    // ledcDetachPin(in1Port_);
 
-    digitalWrite(in1Port_, LOW);
-    digitalWrite(in2Port_, LOW);
+    // pinMode(in1Port_,OUTPUT); 
+    // pinMode(in2Port_,OUTPUT); 
+    // digitalWrite(in1Port_, LOW);
+    // digitalWrite(in2Port_, LOW);
+    ledcWrite(channel_0, DBSpeed_);
+    ledcWrite(channel_1, DBSpeed_);
   } 
   else if (DBSpeed_ > 0) {
     // Setup the pins
-    ledcDetachPin(in2Port_);
-    ledcAttachPin(in1Port_, 0); 
+    // ledcDetachPin(in2Port_);
 
-    digitalWrite(in2Port_, LOW);
-    ledcWrite(in1Port_, abs(DBSpeed_));
+    // pinMode(in2Port_,OUTPUT); 
+    // digitalWrite(in2Port_, LOW);
+
+    // ledcAttachPin(in1Port_, channel_0); 
+    ledcWrite(channel_0, abs(DBSpeed_));
+    ledcWrite(channel_1, 0);  // Write a LOW
 
     printPort(); printSpeed();
     Serial.print("Finger flexed ");encoder.printInfo();
   }
   else {
     // Setup the pins
-    ledcDetachPin(in1Port_);
-    ledcAttachPin(in2Port_, 1);
+    // ledcDetachPin(in1Port_);
+    
+    // pinMode(in1Port_,OUTPUT); 
+    // digitalWrite(in1Port_, LOW);
 
-    digitalWrite(in1Port_, LOW);
-    ledcWrite(in2Port_, abs(DBSpeed_));
+    // ledcAttachPin(in2Port_, channel_1);
+    ledcWrite(channel_1, abs(DBSpeed_));
+    ledcWrite(channel_0, 0);  // Write a LOW
 
     printPort(); printSpeed();
     Serial.print("Finger extended "); encoder.printInfo();
