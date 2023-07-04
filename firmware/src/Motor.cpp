@@ -15,8 +15,8 @@ Motor::Motor(uint8_t encoderPort, uint8_t in1Port, uint8_t in2Port, uint8_t mode
 
     if (mode == 1) {
       // attach channels to pins
-      ledcAttachPin(in1Port, 0); 
-      ledcAttachPin(in1Port, 1);
+      // ledcAttachPin(in1Port, 0); 
+      // ledcAttachPin(in2Port, 1);
 
       // create a PWM channels
       ledcSetup(in1Port, freq, resolution); 
@@ -73,18 +73,32 @@ void Motor::applyPWMPower(int16_t speed) {
   DBSpeed_ = applyDeadband(speed, 20);
   
   if (DBSpeed_ == 0) {
+    // Make both pins digital
+    ledcDetachPin(in2Port_);
+    ledcDetachPin(in1Port_);
+
     digitalWrite(in1Port_, LOW);
     digitalWrite(in2Port_, LOW);
   } 
   else if (DBSpeed_ > 0) {
-    ledcWrite(in1Port_, abs(DBSpeed_));
+    // Setup the pins
+    ledcDetachPin(in2Port_);
+    ledcAttachPin(in1Port_, 0); 
+
     digitalWrite(in2Port_, LOW);
+    ledcWrite(in1Port_, abs(DBSpeed_));
+
     printPort(); printSpeed();
     Serial.print("Finger flexed ");encoder.printInfo();
   }
   else {
+    // Setup the pins
+    ledcDetachPin(in1Port_);
+    ledcAttachPin(in2Port_, 1);
+
     digitalWrite(in1Port_, LOW);
     ledcWrite(in2Port_, abs(DBSpeed_));
+
     printPort(); printSpeed();
     Serial.print("Finger extended "); encoder.printInfo();
   }
