@@ -5,13 +5,6 @@
 #include "Wire.h"
 #include "ESP32RPiSlave.h"
 
-// PMW for motors
-const int channel = 0;
-const int freq = 30000;
-const int resolution = 8;
-const int MAX_DUTY_CYCLE = (int)(pow(2, resolution) - 1);
-
-
 // Addresses for esp32s
 #define I2C_DEV_ADDR 0x55
 // #define ARDUINO_1_ADDRESS 20 // I2C Address of Arduino 1
@@ -131,13 +124,6 @@ void setup()
 
   setupMotors();
 
-  // create a PWM channels
-    // pinMode(PINK_IN1,OUTPUT);
-    // pinMode(PINK_IN2,OUTPUT); 
-    // ledcSetup(channel, freq, resolution); 
-    // ledcAttachPin(PINK_IN1, channel); 
-    // ledcWrite(channel, 200);
-
 // #if CONFIG_IDF_TARGET_ESP32
 //   char message[64];
 //   snprintf(message, 64, "%u Packets.", i++);
@@ -158,21 +144,17 @@ void loop() {
   // rPiLink.buffer.builtinDioValues[0] = digitalRead(BUTTON_PIN);
 
   if (digitalRead(BUTTON_PIN1) == LOW) {
-    // pinkMotor.encoder.resetEncoder();
+    pinkMotor.encoder.resetEncoder();
     // ringMotor.encoder.resetEncoder();
     // middleMotor.encoder.resetEncoder();
     // indexMotor.encoder.resetEncoder();
   }
 
   if (digitalRead(BUTTON_PIN2) == LOW) {
-    rPiLink.buffer.pinkMotor = 255;
-    // ledcWrite(PINK_IN1, 200);
-    // ledcWrite(PINK_IN2, 200);
-    // pinkMotor.encoder.readEncoder();
+    rPiLink.buffer.pinkMotor = 200;
   }
   else if (digitalRead(BUTTON_PIN3) == LOW) {
-    rPiLink.buffer.pinkMotor = -150;
-    // pinkMotor.encoder.readEncoder();
+    rPiLink.buffer.pinkMotor = -200;
   } else {
     rPiLink.buffer.pinkMotor = 0;
   }

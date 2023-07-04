@@ -6,10 +6,6 @@
 Motor::Motor(uint8_t encoderPort, uint8_t in1Port, uint8_t in2Port, uint8_t mode)
   :encoder(encoderPort), in1Port_(in1Port), in2Port_(in2Port), mode_(mode) 
   {
-    // Make sure motors are off
-    digitalWrite(in1Port, LOW);
-    digitalWrite(in2Port, LOW);
-
     if (mode == 1) {
       // create a PWM channels
       ledcSetup(channel_0, freq, resolution); 
@@ -18,10 +14,18 @@ Motor::Motor(uint8_t encoderPort, uint8_t in1Port, uint8_t in2Port, uint8_t mode
       // attach channels to pins
       ledcAttachPin(in1Port, channel_0); 
       ledcAttachPin(in2Port, channel_1);
+
+      // Make sure motor is off
+      ledcWrite(channel_0, 0);
+      ledcWrite(channel_1, 0);
       
     } else {
       pinMode(in1Port,OUTPUT);
       pinMode(in2Port,OUTPUT); 
+
+      // Make sure motor is off
+      digitalWrite(in1Port, LOW);
+      digitalWrite(in2Port, LOW);
     }
     
   }  
@@ -71,43 +75,25 @@ void Motor::applyPower(int16_t speed){
 
 void Motor::applyPWMPower(int16_t speed) {
 
-  DBSpeed_ = applyDeadband(speed, 20);
+  // Don't try and move unless we have at least 100 PWM
+  DBSpeed_ = applyDeadband(speed, 100);
+  if (DBSpeed_ > MAX_DUTY_CYCLE) {
+    DBSpeed_ = MAX_DUTY_CYCLE;
+  }
   
   if (DBSpeed_ == 0) {
-    // // Make both pins digital
-    // ledcDetachPin(in2Port_);
-    // ledcDetachPin(in1Port_);
-
-    // pinMode(in1Port_,OUTPUT); 
-    // pinMode(in2Port_,OUTPUT); 
-    // digitalWrite(in1Port_, LOW);
-    // digitalWrite(in2Port_, LOW);
-    ledcWrite(channel_0, DBSpeed_);
-    ledcWrite(channel_1, DBSpeed_);
+    ledcWrite(channel_0, 0); // Write a LOW
+    ledcWrite(channel_1, 0); // Write a LOW
   } 
   else if (DBSpeed_ > 0) {
-    // Setup the pins
-    // ledcDetachPin(in2Port_);
-
-    // pinMode(in2Port_,OUTPUT); 
-    // digitalWrite(in2Port_, LOW);
-
-    // ledcAttachPin(in1Port_, channel_0); 
-    ledcWrite(channel_0, abs(DBSpeed_));
+    ledcWrite(channel_0, abs(DBSpeed_)); // PWM speed
     ledcWrite(channel_1, 0);  // Write a LOW
 
     printPort(); printSpeed();
     Serial.print("Finger flexed ");encoder.printInfo();
   }
   else {
-    // Setup the pins
-    // ledcDetachPin(in1Port_);
-    
-    // pinMode(in1Port_,OUTPUT); 
-    // digitalWrite(in1Port_, LOW);
-
-    // ledcAttachPin(in2Port_, channel_1);
-    ledcWrite(channel_1, abs(DBSpeed_));
+    ledcWrite(channel_1, abs(DBSpeed_)); // PWM speed
     ledcWrite(channel_0, 0);  // Write a LOW
 
     printPort(); printSpeed();
