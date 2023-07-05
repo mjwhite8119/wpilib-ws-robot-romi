@@ -5,13 +5,14 @@
 #include "Wire.h"
 #include "ESP32RPiSlave.h"
 
+// TwoWire I2CBME = TwoWire(0); 
+// #define ARDUINO_1_ADDRESS 20 // I2C Address of Arduino 1
+// #define ARDUINO_2_ADDRESS 21 // I2C Address of Arduino 1
+
 // Addresses for esp32s
 #define I2C_DEV_ADDR 0x55
 #define I2C_SDA 32
 #define I2C_SCL 33
-// TwoWire I2CBME = TwoWire(0); 
-// #define ARDUINO_1_ADDRESS 20 // I2C Address of Arduino 1
-// #define ARDUINO_2_ADDRESS 21 // I2C Address of Arduino 1
 
 // Buffer and delay time
 ESP32RPiSlave<Data, 20> rPiLink;
@@ -98,16 +99,14 @@ void setupMotors() {
 void setupI2C() {
   // Join I2C bus as slave with address 0x20 Arduino 1
   // or 0x21 for Arduino 2
+
   // rPiLink.init(I2C_DEV_ADDR);
-  
   pinMode(I2C_SDA, INPUT_PULLUP);
   pinMode(I2C_SCL, INPUT_PULLUP);
+  
   Wire.onReceive(onReceive);
   Wire.onRequest(onRequest);
-  
   Wire.begin((uint8_t)I2C_DEV_ADDR, I2C_SDA, I2C_SCL);
-
-  // Wire.begin((uint8_t)I2C_DEV_ADDR); // For slave
 
 #if CONFIG_IDF_TARGET_ESP32
   char message[64];
@@ -156,7 +155,10 @@ void setup()
   Serial.begin(115200);
   Serial.println("Setting Up..."); 
 
-  setupI2C();
+  // setupI2C();
+  // Join I2C bus as slave with address 0x20 Arduino 1
+  // or 0x21 for Arduino 2
+  rPiLink.init(I2C_DEV_ADDR);
 
   // RPi wants the status to be 1 otherwise it will report a brownout.
   rPiLink.buffer.status = 1;
