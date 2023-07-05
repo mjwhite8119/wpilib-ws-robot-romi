@@ -7,9 +7,11 @@
 
 // Addresses for esp32s
 #define I2C_DEV_ADDR 0x55
+#define I2C_SDA 32
+#define I2C_SCL 33
+// TwoWire I2CBME = TwoWire(0); 
 // #define ARDUINO_1_ADDRESS 20 // I2C Address of Arduino 1
 // #define ARDUINO_2_ADDRESS 21 // I2C Address of Arduino 1
-#define LED_BUILTIN 2
 
 // Buffer and delay time
 ESP32RPiSlave<Data, 20> rPiLink;
@@ -42,13 +44,14 @@ Motor pinkMotor = Motor(PINK_ENCODER, PINK_IN1, PINK_IN2, MOTOR_MODE);
 // Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, MIDDLE_ENCODER);
 // Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, INDEX_ENCODER);
 
+#define LED_BUILTIN 2
 #define BUTTON_PIN1 12
 #define BUTTON_PIN2 14
 #define BUTTON_PIN3 13
 
-int loop_count = 0;
-int print_count = 0;
-int button_state = LOW;
+// int loop_count = 0;
+// int print_count = 0;
+// int button_state = LOW;
 
 uint32_t i = 0;
 
@@ -68,21 +71,21 @@ void onReceive(int len){
   // Serial.println();
 }
 
-void logOutput(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
-  if (loop_count > 2000) {
-    // Serial.print(print_count); Serial.print(" Firmware "); Serial.println(rPiLink.buffer.firmwareIdent);
-    loop_count = 0;
-    print_count += 1;
-  }
-  loop_count += 1;
-}
+// void logOutput(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
+//   if (loop_count > 2000) {
+//     // Serial.print(print_count); Serial.print(" Firmware "); Serial.println(rPiLink.buffer.firmwareIdent);
+//     loop_count = 0;
+//     print_count += 1;
+//   }
+//   loop_count += 1;
+// }
 
-double applyDeadband(double input, double threshold) {
-  if (input < -threshold || input > threshold) {
-    return input;
-  }
-  return 0.0;
-}
+// double applyDeadband(double input, double threshold) {
+//   if (input < -threshold || input > threshold) {
+//     return input;
+//   }
+//   return 0.0;
+// }
 
 void setupMotors() {
   
@@ -90,6 +93,54 @@ void setupMotors() {
   // ringMotor.init();
   // middleMotor.init();
   // indexMotor.init();
+}
+
+void setupI2C() {
+  // Join I2C bus as slave with address 0x20 Arduino 1
+  // or 0x21 for Arduino 2
+  // rPiLink.init(I2C_DEV_ADDR);
+  Wire.onReceive(onReceive);
+  Wire.onRequest(onRequest);
+  Wire.begin(I2C_SDA, I2C_SCL);
+  // Wire.begin((uint8_t)I2C_DEV_ADDR); // For slave
+
+#if CONFIG_IDF_TARGET_ESP32
+  char message[64];
+  snprintf(message, 64, "%u Packets.", i++);
+  Wire.slaveWrite((uint8_t *)message, strlen(message));
+#endif
+}
+
+void i2cScan() {
+  byte error, address;
+  int nDevices;
+  Serial.println("Scanning...");
+  nDevices = 0;
+  for(address = 1; address < 127; address++ ) {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+    if (error == 0) {
+      Serial.print("I2C device found at address 0x");
+      if (address<16) {
+        Serial.print("0");
+      }
+      Serial.println(address,HEX);
+      nDevices++;
+    }
+    else if (error==4) {
+      Serial.print("Unknow error at address 0x");
+      if (address<16) {
+        Serial.print("0");
+      }
+      Serial.println(address,HEX);
+    }    
+  }
+  if (nDevices == 0) {
+    Serial.println("No I2C devices found\n");
+  }
+  else {
+    Serial.println("done\n");
+  }
 }
 
 // -------------------------------------------------- //
@@ -100,12 +151,7 @@ void setup()
   Serial.begin(115200);
   Serial.println("Setting Up..."); 
 
-  // Join I2C bus as slave with address 0x20 Arduino 1
-  // or 0x21 for Arduino 2
-  // rPiLink.init(I2C_DEV_ADDR);
-  // Wire.onReceive(onReceive);
-  // Wire.onRequest(onRequest);
-  // Wire.begin((uint8_t)I2C_DEV_ADDR);
+  setupI2C();
 
   // RPi wants the status to be 1 otherwise it will report a brownout.
   rPiLink.buffer.status = 1;
@@ -123,12 +169,6 @@ void setup()
   pinMode(BUTTON_PIN3, INPUT_PULLUP);
 
   setupMotors();
-
-// #if CONFIG_IDF_TARGET_ESP32
-//   char message[64];
-//   snprintf(message, 64, "%u Packets.", i++);
-//   Wire.slaveWrite((uint8_t *)message, strlen(message));
-// #endif
 }
 
 void loop() {
