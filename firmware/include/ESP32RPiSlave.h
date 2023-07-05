@@ -49,7 +49,6 @@
  * incoming I2C writes until they can be applied.
  */
 
-
 template <class BufferType, unsigned int pi_delay_us>
   class ESP32RPiSlave //: public PololuTWISlave
 {
@@ -147,11 +146,15 @@ public:
   }
 
   /* Initialize the slave on a given address. */
-  // void init(uint8_t address)
-  // {
-  //   // PololuTWISlave::init(address, *this);
-  //   Wire.onReceive(onReceive);
-  //   Wire.onRequest(onRequest);
-  //   Wire.begin((uint8_t)address);
-  // }
+  void init(uint8_t address)
+  {
+    // PololuTWISlave::init(address, *this);
+
+    // pinMode(I2C_SDA, INPUT_PULLUP);
+    // pinMode(I2C_SCL, INPUT_PULLUP);
+    
+    // Wire.onReceive(receive);
+    // Wire.onRequest(transmit);
+    // Wire.begin((uint8_t)address);
+  }
 };
