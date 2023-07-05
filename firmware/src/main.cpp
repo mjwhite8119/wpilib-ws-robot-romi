@@ -99,9 +99,14 @@ void setupI2C() {
   // Join I2C bus as slave with address 0x20 Arduino 1
   // or 0x21 for Arduino 2
   // rPiLink.init(I2C_DEV_ADDR);
+  
+  pinMode(I2C_SDA, INPUT_PULLUP);
+  pinMode(I2C_SCL, INPUT_PULLUP);
   Wire.onReceive(onReceive);
   Wire.onRequest(onRequest);
-  Wire.begin(I2C_SDA, I2C_SCL);
+  
+  Wire.begin((uint8_t)I2C_DEV_ADDR, I2C_SDA, I2C_SCL);
+
   // Wire.begin((uint8_t)I2C_DEV_ADDR); // For slave
 
 #if CONFIG_IDF_TARGET_ESP32
@@ -185,6 +190,7 @@ void loop() {
 
   if (digitalRead(BUTTON_PIN1) == LOW) {
     pinkMotor.encoder.resetEncoder();
+    i2cScan();
     // ringMotor.encoder.resetEncoder();
     // middleMotor.encoder.resetEncoder();
     // indexMotor.encoder.resetEncoder();
