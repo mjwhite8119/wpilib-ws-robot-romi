@@ -104,7 +104,7 @@ void setupI2C() {
   pinMode(I2C_SCL, INPUT_PULLUP);
   Wire.onReceive(onReceive);
   Wire.onRequest(onRequest);
-  
+
   Wire.begin((uint8_t)I2C_DEV_ADDR, I2C_SDA, I2C_SCL);
 
   // Wire.begin((uint8_t)I2C_DEV_ADDR); // For slave
@@ -190,7 +190,7 @@ void loop() {
 
   if (digitalRead(BUTTON_PIN1) == LOW) {
     pinkMotor.encoder.resetEncoder();
-    i2cScan();
+    // i2cScan();
     // ringMotor.encoder.resetEncoder();
     // middleMotor.encoder.resetEncoder();
     // indexMotor.encoder.resetEncoder();
