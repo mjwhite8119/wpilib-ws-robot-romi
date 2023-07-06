@@ -10,7 +10,8 @@
 // #define ARDUINO_2_ADDRESS 21 // I2C Address of Arduino 1
 
 // Addresses for esp32s
-#define I2C_DEV_ADDR 0x55
+// #define I2C_DEV_ADDR 0x55
+#define I2C_DEV_ADDR 20
 #define I2C_SDA 32
 #define I2C_SCL 33
 
@@ -106,13 +107,13 @@ void setupI2C() {
   
   Wire.onReceive(onReceive);
   Wire.onRequest(onRequest);
-  Wire.begin((uint8_t)I2C_DEV_ADDR, I2C_SDA, I2C_SCL);
+  Wire.begin(I2C_DEV_ADDR, I2C_SDA, I2C_SCL);
 
-#if CONFIG_IDF_TARGET_ESP32
-  char message[64];
-  snprintf(message, 64, "%u Packets.", i++);
-  Wire.slaveWrite((uint8_t *)message, strlen(message));
-#endif
+// #if CONFIG_IDF_TARGET_ESP32
+//   char message[64];
+//   snprintf(message, 64, "%u Packets.", i++);
+//   Wire.slaveWrite((uint8_t *)message, strlen(message));
+// #endif
 }
 
 void i2cScan() {
@@ -158,7 +159,7 @@ void setup()
   // setupI2C();
   // Join I2C bus as slave with address 0x20 Arduino 1
   // or 0x21 for Arduino 2
-  rPiLink.init(I2C_DEV_ADDR);
+  // rPiLink.init(I2C_DEV_ADDR);
 
   // RPi wants the status to be 1 otherwise it will report a brownout.
   rPiLink.buffer.status = 1;
