@@ -11,8 +11,8 @@
 
 // Addresses for esp32s
 #define I2C_DEV_ADDR 0x55
-#define I2C_SDA 32
-#define I2C_SCL 33
+#define I2C_SDA 21
+#define I2C_SCL 22
 #define SERVER 0
 #define CLIENT 1
 #define ANSWERSIZE 5
@@ -215,6 +215,7 @@ void loop() {
 
   if (mode == SERVER) {
     requestFromClient();
+    i2cScan();
   }  
 
   // Constantly write the firmware ident
