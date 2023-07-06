@@ -13,6 +13,13 @@
 #define I2C_DEV_ADDR 0x55
 #define I2C_SDA 32
 #define I2C_SCL 33
+#define SERVER 0
+#define CLIENT 1
+#define ANSWERSIZE 5
+const uint8_t mode = SERVER;
+
+// Define string with response to Master
+String answer = "Hello";
 
 // Buffer and delay time
 ESP32RPiSlave<Data, 20> rPiLink;
@@ -56,63 +63,12 @@ Motor pinkMotor = Motor(PINK_ENCODER, PINK_IN1, PINK_IN2, MOTOR_MODE);
 
 uint32_t i = 0;
 
-void onRequest(){
-  // Wire.print(i++);
-  // Wire.print(" Packets.");
-  // Serial.println("onRequest");
-  rPiLink.transmit();
-}
-
-void onReceive(int len){
-  rPiLink.receive(len);
-  // Serial.printf("onReceive[%d]: ", len);
-  // while(Wire.available()){
-  //   Serial.write(Wire.read());
-  // }
-  // Serial.println();
-}
-
-// void logOutput(double pinkSpeed, double ringSpeed, double middleSpeed, double indexSpeed) {
-//   if (loop_count > 2000) {
-//     // Serial.print(print_count); Serial.print(" Firmware "); Serial.println(rPiLink.buffer.firmwareIdent);
-//     loop_count = 0;
-//     print_count += 1;
-//   }
-//   loop_count += 1;
-// }
-
-// double applyDeadband(double input, double threshold) {
-//   if (input < -threshold || input > threshold) {
-//     return input;
-//   }
-//   return 0.0;
-// }
-
 void setupMotors() {
   
   pinkMotor.init();
   // ringMotor.init();
   // middleMotor.init();
   // indexMotor.init();
-}
-
-void setupI2C() {
-  // Join I2C bus as slave with address 0x20 Arduino 1
-  // or 0x21 for Arduino 2
-
-  // rPiLink.init(I2C_DEV_ADDR);
-  pinMode(I2C_SDA, INPUT_PULLUP);
-  pinMode(I2C_SCL, INPUT_PULLUP);
-  
-  Wire.onReceive(onReceive);
-  Wire.onRequest(onRequest);
-  Wire.begin((uint8_t)I2C_DEV_ADDR, I2C_SDA, I2C_SCL);
-
-#if CONFIG_IDF_TARGET_ESP32
-  char message[64];
-  snprintf(message, 64, "%u Packets.", i++);
-  Wire.slaveWrite((uint8_t *)message, strlen(message));
-#endif
 }
 
 void i2cScan() {
@@ -147,6 +103,79 @@ void i2cScan() {
   }
 }
 
+void requestEvent(){
+  // Setup byte variable in the correct size
+  byte response[ANSWERSIZE];
+  
+  // Format answer as array
+  for (byte i=0;i<ANSWERSIZE;i++) {
+    response[i] = (byte)answer.charAt(i);
+  }
+  
+  // Send response back to Server
+  Wire.write(response,sizeof(response));
+  
+  // Print to Serial Monitor
+  Serial.println("Request event");
+  // // Wire.print(i++);
+  // // Wire.print(" Packets.");
+  // // Serial.println("onRequest");
+  // rPiLink.transmit();
+}
+
+void receiveEvent(int len){
+
+  // rPiLink.receive(len);
+
+  // Print to Serial Monitor
+  Serial.println("Receive event");
+  Serial.printf("onReceive[%d]: ", len);
+  while(Wire.available()){
+    Serial.write(Wire.read());
+  }
+  Serial.println();
+}
+
+void setupI2C() {
+  // Join I2C bus as slave with address 0x20 Arduino 1
+  // or 0x21 for Arduino 2
+
+  pinMode(I2C_SDA, INPUT_PULLUP);
+  pinMode(I2C_SCL, INPUT_PULLUP);
+
+  if (mode == SERVER) {
+    Wire.begin(I2C_SDA, I2C_SCL);
+  } else {
+    Wire.onReceive(receiveEvent);
+    Wire.onRequest(requestEvent);
+    Wire.begin((uint8_t)I2C_DEV_ADDR, I2C_SDA, I2C_SCL);
+  }
+
+}
+
+void requestFromClient() {
+
+  // Write a character to the client
+  Wire.beginTransmission(I2C_DEV_ADDR);
+  Wire.write(0);
+  Wire.endTransmission();
+
+  // Read response from Slave
+  // Read back 5 characters
+  Wire.requestFrom(I2C_DEV_ADDR,ANSWERSIZE);
+  
+  // Add characters to string
+  String response = "";
+  while (Wire.available()) {
+      char b = Wire.read();
+      response += b;
+  } 
+  
+  // Print to Serial Monitor
+  Serial.println(response);
+  
+}
+
 // -------------------------------------------------- //
 // Setup and Main                                     //
 // -------------------------------------------------- //
@@ -158,7 +187,8 @@ void setup()
   // setupI2C();
   // Join I2C bus as slave with address 0x20 Arduino 1
   // or 0x21 for Arduino 2
-  rPiLink.init(I2C_DEV_ADDR);
+  // rPiLink.init(I2C_DEV_ADDR);
+  setupI2C();
 
   // RPi wants the status to be 1 otherwise it will report a brownout.
   rPiLink.buffer.status = 1;
@@ -183,19 +213,16 @@ void loop() {
   // Get the latest data including recent i2c master writes
   rPiLink.updateBuffer();
 
+  if (mode == SERVER) {
+    requestFromClient();
+  }  
+
   // Constantly write the firmware ident
   rPiLink.buffer.firmwareIdent = FIRMWARE_IDENT;
   rPiLink.buffer.status = 1;
 
-  // Update the built-ins.  These are 4 boolean values
-  // rPiLink.buffer.builtinDioValues[0] = digitalRead(BUTTON_PIN);
-
   if (digitalRead(BUTTON_PIN1) == LOW) {
     pinkMotor.encoder.resetEncoder();
-    // i2cScan();
-    // ringMotor.encoder.resetEncoder();
-    // middleMotor.encoder.resetEncoder();
-    // indexMotor.encoder.resetEncoder();
   }
 
   if (digitalRead(BUTTON_PIN2) == LOW) {
@@ -206,26 +233,6 @@ void loop() {
   } else {
     rPiLink.buffer.pinkMotor = 0;
   }
-  
-  // Check if button A is pressed
-  // if (rPiLink.buffer.builtinDioValues[0] == HIGH) {
-  //   Serial.println("ButtonA is pressed...");
-  //   rPiLink.buffer.pinkMotor = 200;
-  //   digitalWrite(PINK_IN1, HIGH);
-  //   digitalWrite(PINK_IN2, LOW);
-  // } 
-  // else {
-  //   rPiLink.buffer.pinkMotor = 0;
-  //   digitalWrite(PINK_IN1, LOW);
-  //   digitalWrite(PINK_IN2, LOW);
-  // }
-
-  // digitalWrite(LED_BUILTIN, rPiLink.buffer.builtinDioValues[3]);
-  // if (rPiLink1.buffer.builtinDioValues[3] == true) {
-  //   digitalWrite(LED_BUILTIN, HIGH);
-  // } else {
-  //   digitalWrite(LED_BUILTIN, LOW);
-  // }
 
   if (MOTOR_MODE == PWM ) {
     pinkMotor.applyPWMPower(rPiLink.buffer.pinkMotor);
@@ -233,30 +240,6 @@ void loop() {
     pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
   }
   
-  
-  // ringMotor.applyPower(rPiLink.buffer.ringMotor);
-  // middleMotor.applyPower(rPiLink.buffer.middleMotor);
-  // indexMotor.applyPower(rPiLink.buffer.indexMotor);
-
-  // Encoders
-  // if (rPiLink.buffer.resetLeftEncoder) {
-  //   rPiLink.buffer.resetLeftEncoder = false;
-  //   pinkMotor.encoder.resetEncoder();
-  // }
-
-  // if (rPiLink.buffer.resetRightEncoder) {
-  //   rPiLink.buffer.resetRightEncoder = false;
-  //   ringMotor.encoder.resetEncoder();
-  // }
-
-  // rPiLink.buffer.leftEncoder = encoders.getCountsLeft();
-  // rPiLink.buffer.rightEncoder = encoders.getCountsRight();
-
-  // pinkMotor.encoder.readEncoder();
-  // ringMotor.encoder.readEncoder();
-  // middleMotor.encoder.readEncoder();
-  // indexMotor.encoder.readEncoder();
-
   // Write to buffer
   rPiLink.finalizeWrites();
 }
