@@ -11,8 +11,8 @@
 
 // Addresses for esp32s
 #define I2C_DEV_ADDR 0x55
-#define I2C_SDA 32
-#define I2C_SCL 33
+#define I2C_SDA 21
+#define I2C_SCL 22
 #define SERVER 0
 #define CLIENT 1
 #define ANSWERSIZE 5
@@ -47,12 +47,12 @@ ESP32RPiSlave<Data, 20> rPiLink;
 #define PWM 1
 #define MOTOR_MODE PWM
 
-Motor pinkMotor = Motor(PINK_ENCODER, PINK_IN1, PINK_IN2, MOTOR_MODE);
+// Motor pinkMotor = Motor(PINK_ENCODER, PINK_IN1, PINK_IN2, MOTOR_MODE);
 // Motor ringMotor = Motor(RING_IN3, RING_IN4, RING_ENCODER);
 // Motor middleMotor = Motor(MIDDLE_IN1, MIDDLE_IN2, MIDDLE_ENCODER);
 // Motor indexMotor = Motor(INDEX_IN3, INDEX_IN4, INDEX_ENCODER);
 
-#define LED_BUILTIN 2
+// #define LED_BUILTIN 2
 #define BUTTON_PIN1 12
 #define BUTTON_PIN2 14
 #define BUTTON_PIN3 13
@@ -65,7 +65,7 @@ uint32_t i = 0;
 
 void setupMotors() {
   
-  pinkMotor.init();
+  // pinkMotor.init();
   // ringMotor.init();
   // middleMotor.init();
   // indexMotor.init();
@@ -216,13 +216,14 @@ void loop() {
   if (mode == SERVER) {
     requestFromClient();
   }  
+  i2cScan();
 
   // Constantly write the firmware ident
   rPiLink.buffer.firmwareIdent = FIRMWARE_IDENT;
   rPiLink.buffer.status = 1;
 
   if (digitalRead(BUTTON_PIN1) == LOW) {
-    pinkMotor.encoder.resetEncoder();
+    // pinkMotor.encoder.resetEncoder();
   }
 
   if (digitalRead(BUTTON_PIN2) == LOW) {
@@ -235,9 +236,9 @@ void loop() {
   }
 
   if (MOTOR_MODE == PWM ) {
-    pinkMotor.applyPWMPower(rPiLink.buffer.pinkMotor);
+    // pinkMotor.applyPWMPower(rPiLink.buffer.pinkMotor);
   } else {
-    pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
+    // pinkMotor.applyPower(rPiLink.buffer.pinkMotor);
   }
   
   // Write to buffer
