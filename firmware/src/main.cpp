@@ -217,7 +217,6 @@ void loop() {
     requestFromClient();
     i2cScan();
   }  
-  i2cScan();
 
   // Constantly write the firmware ident
   rPiLink.buffer.firmwareIdent = FIRMWARE_IDENT;
